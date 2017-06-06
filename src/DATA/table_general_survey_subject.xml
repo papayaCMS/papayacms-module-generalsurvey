@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<table name="general_survey_subject" prefix="yes" type="transactions">
+  <fields>
+    <field name="subject_id" type="integer" size="4" null="no" autoinc="yes"/>
+    <field name="subject_parent_id" type="integer" size="4" null="no"/>
+    <field name="survey_id" type="integer" size="4" null="no"/>
+    <field name="subject_name" type="string" size="255" null="no"/>
+  </fields>
+  <keys>
+    <primary-key>
+      <field>subject_id</field>
+    </primary-key>
+    <key name="survey_id">
+      <field>survey_id</field>
+    </key>
+  </keys>
+</table>

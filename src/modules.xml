@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<modulegroup>
+  <name>General Survey</name>
+  <description>Provides tools to manage surveys with questions, answers and statistics.</description>
+  <classes file="_classmap.php"/>
+  <modules>
+    <module type="admin"
+            guid="953433a5f2ce909d5a98c56e0aafef80"
+            name="Survey Adminstration"
+            class="edmodule_general_survey"
+            file="General/edmodule_general_survey.php">
+        Administration Module for Surveys
+    </module>
+    <module type="page"
+            guid="bceb5c37c93802fead1cee83d96fc179"
+            name="Survey Page"
+            class="GeneralSurveyContentPage"
+            file="General/Survey/Content/Page.php">
+        Survey Page Module
+    </module>
+  </modules>
+  <tables>
+    <table name="general_survey"/>
+    <table name="general_survey_subject"/>
+    <table name="general_survey_questiongroup"/>
+    <table name="general_survey_question"/>
+    <table name="general_survey_answer"/>
+    <table name="general_survey_subject"/>
+    <table name="general_survey_result"/>
+    <table name="general_survey_user_subject"/>
+  </tables>
+</modulegroup>

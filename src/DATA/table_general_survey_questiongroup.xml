@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<table name="general_survey_questiongroup" prefix="yes" type="transactions">
+  <fields>
+    <field name="questiongroup_id" type="integer" size="4" null="no" autoinc="yes"/>
+    <field name="survey_id" type="integer" size="4" null="no"/>
+    <field name="questiongroup_title" type="string" size="255" null="no"/>
+    <field name="questiongroup_description" type="string" size="65535" null="no"/>
+    <field name="questiongroup_order" type="integer" size="4" null="no"/>
+  </fields>
+  <keys>
+    <primary-key>
+      <field>questiongroup_id</field>
+    </primary-key>
+    <key name="questiongroup_title">
+      <field>questiongroup_title</field>
+    </key>
+  </keys>
+</table>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<table name="general_survey_result" prefix="yes" type="transactions">
+  <fields>
+    <field name="answer_id" type="integer" size="4" null="no"/>
+    <field name="subject_id" type="integer" size="4" null="no"/>
+    <field name="result_count" type="integer" size="4" null="no"/>
+  </fields>
+  <keys>
+    <key name="subject_id">
+      <field>subject_id</field>
+    </key>
+  </keys>
+</table>
