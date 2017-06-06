@@ -1,0 +1,19 @@
+{
+  "name": "papaya/module-generalsurvey",
+  "minimum-stability": "dev",
+  "extra" : {
+    "document-root" : "htdocs/"
+  },
+  "require": {
+    "papaya/cms-core": "*",
+    "papaya/cms-administration": "*",
+    "papaya/module-default": "*",
+    "papaya/module-default-cronjobs": "*",
+    "papaya/module-standard": "*",
+    "papaya/module-community": "*"
+  },
+  "require-dev": {
+    "papaya/cms-administration": "*",
+    "papaya/theme-dynamic": "*"
+  }
+}

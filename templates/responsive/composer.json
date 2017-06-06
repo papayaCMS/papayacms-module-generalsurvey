@@ -1,0 +1,7 @@
+{
+  "name": "papaya/template-responsive",
+  "type": "papaya-template",
+  "require": {
+    "papaya/composer-plugins": "1.*"
+  }
+}
