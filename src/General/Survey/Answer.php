@@ -30,6 +30,12 @@ class GeneralSurveyAnswer extends PapayaDatabaseObjectRecord {
   );
 
   /**
+   * Language ID
+   * @var integer
+   */
+  private $_language = 0;
+
+  /**
   * Load a record from database by id
   *
   * @param integer $id
@@ -129,5 +135,18 @@ class GeneralSurveyAnswer extends PapayaDatabaseObjectRecord {
       }
     }
     return $maxOrder;
+  }
+
+  /**
+   * Get/set current language
+   *
+   * @param integer $language optional, default NULL
+   * @return integer
+   */
+  public function language($language = NULL) {
+    if ($language !== NULL) {
+      $this->_language = $language;
+    }
+    return $this->_language;
   }
 }

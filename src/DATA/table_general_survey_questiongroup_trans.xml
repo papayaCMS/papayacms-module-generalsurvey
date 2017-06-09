@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<table name="general_survey_questiongroup_trans" prefix="yes" type="transactions">
+  <fields>
+    <field name="questiongroup_id" type="integer" size="4" null="no"/>
+    <field name="questiongroup_language" type="integer" size="4" null="no"/>
+    <field name="questiongroup_title" type="string" size="255" null="no"/>
+    <field name="questiongroup_description" type="string" size="65535" null="no"/>
+  </fields>
+  <keys>
+    <primary-key>
+      <field>questiongroup_id</field>
+      <field>questiongroup_language</field>
+    </primary-key>
+    <key name="questiongroup_title">
+      <field>questiongroup_title</field>
+    </key>
+  </keys>
+</table>

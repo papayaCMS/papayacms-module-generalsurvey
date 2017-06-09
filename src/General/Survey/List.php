@@ -23,9 +23,17 @@ class GeneralSurveyList extends PapayaDatabaseObjectList {
   */
   protected $_fieldMapping = array(
     'survey_id' => 'id',
+    'survey_use_subjects' => 'use_subjects',
+    'survey_use_answers' => 'use_answers',
     'survey_title' => 'title',
     'survey_description' => 'description'
   );
+
+  /**
+   * Language ID
+   * @var integer
+   */
+  private $_language = 0;
 
   /**
   * Load records from database
@@ -35,11 +43,84 @@ class GeneralSurveyList extends PapayaDatabaseObjectList {
   * @return boolean TRUE on success, FALSE otherwise
   */
   public function load($limit = NULL, $offset = NULL) {
-    $sql = "SELECT survey_id, survey_title, survey_description
-              FROM %s
+    $sql = "SELECT s.survey_id, s.survey_use_subjects, s.survey_use_answers,
+                   st.survey_title, st.survey_description
+              FROM %s s
+             INNER JOIN %s st
+                ON s.survey_id = st.survey_id
+             WHERE s.deleted = 0
+               AND st.survey_language = %d
              ORDER BY survey_title ASC";
-    $parameters = array($this->databaseGetTableName('general_survey'));
+    $parameters = [
+      $this->databaseGetTableName('general_survey'),
+      $this->databaseGetTableName('general_survey_trans'),
+      $this->language()
+    ];
     return $this->_loadRecords($sql, $parameters, 'survey_id', $limit, $offset);
+  }
+
+  /**
+  * Retrieve a list of all records; current language preferred, other(s) as fallback
+  *
+  * @param integer|NULL $limit optional, default NULL
+  * @param integer|NULL $offset optional, default NULL
+  * @return array
+  */
+  public function getFull($limit = NULL, $offset = NULL) {
+    $result = [];
+    $sql = "SELECT s.survey_id, s.survey_use_subjects, s.survey_use_answers,
+                   st.survey_title, st.survey_description
+              FROM %s s
+             INNER JOIN %s st
+                ON s.survey_id = st.survey_id
+             WHERE st.survey_language = %d
+               AND s.deleted = 0
+             ORDER BY st.survey_title ASC";
+    $parameters = [
+      $this->databaseGetTableName('general_survey'),
+      $this->databaseGetTableName('general_survey_trans'),
+      $this->language()
+    ];
+    if ($res = $this->databaseQueryFmt($sql, $parameters)) {
+      while ($row = $res->fetchRow(DB_FETCHMODE_ASSOC)) {
+        $result[$row['survey_id']] = [
+          'id' => $row['survey_id'],
+          'use_subjects' => $row['survey_use_subjects'],
+          'use_answers' => $row['survey_use_answers'],
+          'title' => $row['survey_title'],
+          'description' => $row['survey_description'],
+          'HAS_CURRENT_LANGUAGE' => 1
+        ];
+      }
+    }
+    $sql = "SELECT s.survey_id, s.survey_use_subjects, s.survey_use_answers,
+                   st.survey_title, st.survey_description
+              FROM %s s
+             INNER JOIN %s st
+                ON s.survey_id = st.survey_id
+             WHERE st.survey_language != %d
+               AND s.deleted = 0
+             ORDER BY st.survey_language ASC, st.survey_title ASC";
+    $parameters = [
+      $this->databaseGetTableName('general_survey'),
+      $this->databaseGetTableName('general_survey_trans'),
+      $this->language()
+    ];
+    if ($res = $this->databaseQueryFmt($sql, $parameters)) {
+      while ($row = $res->fetchRow(DB_FETCHMODE_ASSOC)) {
+        if (!array_key_exists($row['survey_id'], $result)) {
+          $result[$row['survey_id']] = [
+            'id' => $row['survey_id'],
+            'use_subjects' => $row['survey_use_subjects'],
+            'use_answers' => $row['survey_use_answers'],
+            'title' => sprintf('[%s]', $row['survey_title']),
+            'description' => $row['survey_description'],
+            'HAS_CURRENT_LANGUAGE' => 0
+          ];
+        }
+      }
+    }
+    return $result;
   }
 
   /**
@@ -50,10 +131,10 @@ class GeneralSurveyList extends PapayaDatabaseObjectList {
   */
   public function delete($id) {
     $deleted = (
-      FALSE !== $this->databaseDeleteRecord(
+      FALSE !== $this->databaseUpdateRecord(
         $this->databaseGetTableName('general_survey'),
-        'survey_id',
-        $id
+        ['deleted' => time()],
+        ['survey_id' => $id]
       )
     );
     $result = FALSE;
@@ -64,5 +145,18 @@ class GeneralSurveyList extends PapayaDatabaseObjectList {
       $result = TRUE;
     }
     return $result;
+  }
+
+  /**
+   * Get/set current language
+   *
+   * @param integer $language optional, default NULL
+   * @return integer
+   */
+  public function language($language = NULL) {
+    if ($language !== NULL) {
+      $this->_language = $language;
+    }
+    return $this->_language;
   }
 }

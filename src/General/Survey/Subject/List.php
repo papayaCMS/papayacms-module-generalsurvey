@@ -21,12 +21,18 @@ class GeneralSurveySubjectList extends PapayaDatabaseObjectList {
   * Mapping array to assign simple names to fields
   * @var array
   */
-  protected $_fieldMapping = array(
+  protected $_fieldMapping = [
     'subject_id' => 'id',
     'subject_parent_id' => 'parent_id',
     'survey_id' => 'survey_id',
     'subject_name' => 'name'
-  );
+  ];
+
+  /**
+   * Language ID
+   * @var integer
+   */
+  private $_language = 0;
 
   /**
   * Load records from the database
@@ -36,10 +42,15 @@ class GeneralSurveySubjectList extends PapayaDatabaseObjectList {
   * @param integer|NULL $offset optional, default NULL
   * @return boolean TRUE on success, FALSE otherwise
   */
-  public function load($filter = array(), $limit = NULL, $offset = NULL) {
-    $sql = "SELECT subject_id, subject_parent_id, survey_id, subject_name
-              FROM %s";
-    $conditions = array();
+  public function load($filter = [], $limit = NULL, $offset = NULL) {
+    $sql = "SELECT s.subject_id, s.subject_parent_id, s.survey_id, st.subject_name
+              FROM %s s
+             INNER JOIN %s st
+                ON s.subject_id = st.subject_id";
+    $conditions = [
+      's.deleted' => 0,
+      'st.subject_language' => $this->language()
+    ];
     if (is_array($filter) && !empty($filter)) {
       $mapping = array_flip($this->_fieldMapping);
       foreach ($filter as $field => $value) {
@@ -48,11 +59,12 @@ class GeneralSurveySubjectList extends PapayaDatabaseObjectList {
         }
       }
     }
-    if (!empty($conditions)) {
-      $sql .= str_replace('%', '%%', " WHERE ".implode(" AND ", $conditions));
-    }
+    $sql .= str_replace('%', '%%', " WHERE ".implode(" AND ", $conditions));
     $sql .= " ORDER BY survey_id, subject_parent_id, subject_name";
-    $parameters = array($this->databaseGetTableName('general_survey_subject'));
+    $parameters = [
+      $this->databaseGetTableName('general_survey_subject'),
+      $this->databaseGetTableName('general_survey_subject_trans')
+    ];
     return $this->_loadRecords($sql, $parameters, 'subject_id', $limit, $offset);
   }
 
@@ -65,10 +77,10 @@ class GeneralSurveySubjectList extends PapayaDatabaseObjectList {
   public function delete($id) {
     $result = FALSE;
     $deleted = (
-      FALSE !== $this->databaseDeleteRecord(
+      FALSE !== $this->databaseUpdateRecord(
         $this->databaseGetTableName('general_survey_subject'),
-        'subject_id',
-        $id
+        ['deleted' => time()],
+        ['subject_id' => $id]
       )
     );
     if ($deleted) {
@@ -87,5 +99,18 @@ class GeneralSurveySubjectList extends PapayaDatabaseObjectList {
   */
   public function getAbsCount() {
     return $this->_recordCount;
+  }
+
+  /**
+   * Get/set current language
+   *
+   * @param integer $language optional, default NULL
+   * @return integer
+   */
+  public function language($language = NULL) {
+    if ($language !== NULL) {
+      $this->_language = $language;
+    }
+    return $this->_language;
   }
 }

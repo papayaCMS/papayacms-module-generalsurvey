@@ -31,6 +31,12 @@ class GeneralSurveyQuestionList extends PapayaDatabaseObjectList {
   );
 
   /**
+   * Language ID
+   * @var integer
+   */
+  private $_language = 0;
+
+  /**
   * Load records from database
   *
   * @param array $filter optional, default empty array
@@ -38,25 +44,108 @@ class GeneralSurveyQuestionList extends PapayaDatabaseObjectList {
   * @param integer|NULL $offset optional, default NULL
   * @return boolean TRUE on success, FALSE otherwise
   */
-  public function load($filter = array(), $limit = NULL, $offset = NULL) {
-    $sql = "SELECT question_id, questiongroup_id, question_title,
-                   question_description, question_type, question_order
-              FROM %s";
-    $conditions = array();
+  public function load($filter = [], $limit = NULL, $offset = NULL) {
+    $sql = "SELECT q.question_id, q.questiongroup_id, qt.question_title,
+                   qt.question_description, q.question_type, q.question_order
+              FROM %s q
+             INNER JOIN %s qt
+                ON q.question_id = qt.question_id";
+    $conditions = [
+      'deleted' => 0,
+      'question_language' => $this->language()
+    ];
     if (!empty($filter) && is_array($filter)) {
       $mapping = array_flip($this->_fieldMapping);
       foreach ($filter as $field => $value) {
-        if (in_array($field, array('id', 'questiongroup_id', 'type'))) {
-          $conditions[] = $this->databaseGetSqlCondition($mapping[$field], $value);
+        if (in_array($field, array('id', 'question_id', 'type'))) {
+          $conditions[] = $this->databaseGetSqlCondition('q.'.$mapping[$field], $value);
         }
       }
     }
     if (!empty($conditions)) {
       $sql .= str_replace('%', '%%', " WHERE ".implode(" AND ", $conditions));
     }
-    $sql .= " ORDER BY questiongroup_id, question_order";
-    $parameters = array($this->databaseGetTableName('general_survey_question'));
+    $sql .= " ORDER BY q.questiongroup_id, q.question_order";
+    $parameters = array(
+      $this->databaseGetTableName('general_survey_question'),
+      $this->databaseGetTableName('general_survey_question_trans')
+    );
     return $this->_loadRecords($sql, $parameters, 'question_id', $limit, $offset);
+  }
+
+  /**
+   * Get the full list of questions, with or without translation in the current language
+   *
+   * @param array $filter optional, default empty array
+   * @param integer|NULL $limit optional, default NULL
+   * @param integer|NULL $offset optional, default NULL
+   * @return array
+   */
+  public function getFull($filter = [], $limit = NULL, $offset = NULL) {
+    $result = [];
+    $sql = "SELECT question_id, question_order, questiongroup_id
+              FROM %s";
+    $conditions = [
+      $this->databaseGetSqlCondition('deleted', 0)
+    ];
+    if (!empty($filter) && is_array($filter)) {
+      $mapping = array_flip($this->_fieldMapping);
+      foreach ($filter as $field => $value) {
+        if (in_array($field, ['id', 'questiongroup_id'])) {
+          $conditions[] = $this->databaseGetSqlCondition($mapping[$field], $value);
+        }
+      }
+    }
+    $sql .= str_replace('%', '%%', " WHERE ".implode(" AND ", $conditions));
+    $sql .= " ORDER BY questiongroup_id, question_order";
+    $parameters = [$this->databaseGetTableName('general_survey_question')];
+    if ($res = $this->databaseQueryFmt($sql, $parameters, $limit, $offset)) {
+      while ($row = $res->fetchRow(DB_FETCHMODE_ASSOC)) {
+        $result[$row['question_id']] = [
+          'id' => $row['question_id'],
+          'order' => $row['question_order'],
+          'questiongroup_id' => $row['questiongroup_id']
+        ];
+      }
+    }
+    if (!empty($result)) {
+      $conditions = [
+        $this->databaseGetSqlCondition('question_id', array_keys($result)),
+        $this->databaseGetSqlCondition('question_language', $this->language())
+      ];
+      $sql = "SELECT question_id, question_title, question_description
+                FROM %s
+               WHERE ".str_replace('%', '%%', implode(" AND ", $conditions));
+      $parameters = [$this->databaseGetTableName('general_survey_question_trans')];
+      if ($res = $this->databaseQueryFmt($sql, $parameters)) {
+        while ($row = $res->fetchRow(DB_FETCHMODE_ASSOC)) {
+          $id = $row['question_id'];
+          $result[$id]['title'] = $row['question_title'];
+          $result[$id]['description'] = $row['question_description'];
+          $result[$id]['HAS_CURRENT_LANGUAGE'] = 1;
+        }
+      }
+      $condition = $this->databaseGetSqlCondition('question_id', array_keys($result));
+      $sql = "SELECT question_id, question_title, question_description
+                FROM %s
+               WHERE ".str_replace('%', '%%', $condition)
+        . " AND question_language != %d";
+      $parameters = [
+        $this->databaseGetTableName('general_survey_question_trans'),
+        $this->language()
+      ];
+      if ($res = $this->databaseQueryFmt($sql, $parameters)) {
+        while ($row = $res->fetchRow(DB_FETCHMODE_ASSOC)) {
+          $id = $row['question_id'];
+          if (!isset($result[$id]['title'])) {
+            $result[$id]['title'] = sprintf('[%s]', $row['question_title']);
+            $result[$id]['description'] = $row['question_description'];
+            $result[$id]['HAS_CURRENT_LANGUAGE'] = 0;
+          }
+        }
+      }
+    }
+    return $result;
   }
 
   /**
@@ -67,14 +156,13 @@ class GeneralSurveyQuestionList extends PapayaDatabaseObjectList {
   */
   public function delete($id) {
     $result = FALSE;
-    $tempRecords = $this->_records;
-    $this->load(array('id' => $id));
-    if (count($this->_records) > 0) {
+    $records = $this->getFull(['id' => $id]);
+    if (count($records) > 0) {
       $deleted = (
-        FALSE !== $this->databaseDeleteRecord(
+        FALSE !== $this->databaseUpdateRecord(
           $this->databaseGetTableName('general_survey_question'),
-          'question_id',
-          $id
+          ['deleted' => time(), 'question_order' => 0],
+          ['question_id' => $id]
         )
       );
       $result = FALSE;
@@ -85,18 +173,12 @@ class GeneralSurveyQuestionList extends PapayaDatabaseObjectList {
                    AND question_order > %d";
         $parameters = array(
           $this->databaseGetTableName('general_survey_question'),
-          $this->_records[$id]['questiongroup_id'],
-          $this->_records[$id]['order']
+          $records[$id]['questiongroup_id'],
+          $records[$id]['order']
         );
         $this->databaseQueryFmtWrite($sql, $parameters);
-        if (isset($tempRecords[$id])) {
-          unset($tempRecords[$id]);
-        }
         $result = TRUE;
       }
-    }
-    if (!empty($tempRecords)) {
-      $this->load(array('id' => array_keys($tempRecords)));
     }
     return $result;
   }
@@ -109,17 +191,16 @@ class GeneralSurveyQuestionList extends PapayaDatabaseObjectList {
   */
   public function moveUp($id) {
     $result = FALSE;
-    $tempRecords = $this->_records;
-    $this->load(array('id' => $id));
-    if (count($this->_records) > 0 && $this->_records[$id]['order'] > 1) {
+    $records = $this->getFull(['id' => $id]);
+    if (count($records) > 0 && $records[$id]['order'] > 1) {
       $sql = "UPDATE %s
                  SET question_order = question_order + 1
                WHERE questiongroup_id = %d
                  AND question_order = %d";
       $parameters = array(
         $this->databaseGetTableName('general_survey_question'),
-        $this->_records[$id]['questiongroup_id'],
-        $this->_records[$id]['order'] - 1
+        $records[$id]['questiongroup_id'],
+        $records[$id]['order'] - 1
       );
       $this->databaseQueryFmtWrite($sql, $parameters);
       $sql = "UPDATE %s
@@ -130,9 +211,6 @@ class GeneralSurveyQuestionList extends PapayaDatabaseObjectList {
         $id
       );
       $result = (FALSE !== $this->databaseQueryFmtWrite($sql, $parameters));
-    }
-    if (!empty($tempRecords)) {
-      $this->load(array('question_id' => array_keys($tempRecords)));
     }
     return $result;
   }
@@ -145,11 +223,10 @@ class GeneralSurveyQuestionList extends PapayaDatabaseObjectList {
   */
   public function moveDown($id) {
     $result = FALSE;
-    $tempRecords = $this->_records;
-    $this->load(array('id' => $id));
-    if (count($this->_records) > 0 &&
-        $this->_records[$id]['order'] < $this->_getMaxOrder(
-          $this->_records[$id]['questiongroup_id']
+    $records = $this->getFull(['id' => $id]);
+    if (count($records) > 0 &&
+        $records[$id]['order'] < $this->_getMaxOrder(
+          $records[$id]['questiongroup_id']
         )) {
       $sql = "UPDATE %s
                  SET question_order = question_order - 1
@@ -157,8 +234,8 @@ class GeneralSurveyQuestionList extends PapayaDatabaseObjectList {
                  AND question_order = %d";
       $parameters = array(
         $this->databaseGetTableName('general_survey_question'),
-        $this->_records[$id]['questiongroup_id'],
-        $this->_records[$id]['order'] + 1
+        $records[$id]['questiongroup_id'],
+        $records[$id]['order'] + 1
       );
       $this->databaseQueryFmtWrite($sql, $parameters);
       $sql = "UPDATE %s
@@ -169,9 +246,6 @@ class GeneralSurveyQuestionList extends PapayaDatabaseObjectList {
         $id
       );
       $result = (FALSE !== $this->databaseQueryFmtWrite($sql, $parameters));
-    }
-    if (!empty($tempRecords)) {
-      $this->load(array('question_id' => array_keys($tempRecords)));
     }
     return $result;
   }
@@ -197,5 +271,18 @@ class GeneralSurveyQuestionList extends PapayaDatabaseObjectList {
       }
     }
     return $maxOrder;
+  }
+
+  /**
+   * Get/set current language
+   *
+   * @param integer $language optional, default NULL
+   * @return integer
+   */
+  public function language($language = NULL) {
+    if ($language !== NULL) {
+      $this->_language = $language;
+    }
+    return $this->_language;
   }
 }

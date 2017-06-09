@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<table name="general_survey_question_trans" prefix="yes" type="transactions">
+  <fields>
+    <field name="question_id" type="integer" size="4" null="no"/>
+    <field name="question_language" type="integer" size="4" null="no"/>
+    <field name="question_title" type="string" size="255" null="no"/>
+    <field name="question_description" type="string" size="65535" null="no"/>
+  </fields>
+  <keys>
+    <primary-key>
+      <field>question_id</field>
+      <field>question_language</field>
+    </primary-key>
+  </keys>
+</table>

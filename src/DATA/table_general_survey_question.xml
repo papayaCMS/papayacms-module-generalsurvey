@@ -1,16 +1,22 @@
-<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <table name="general_survey_question" prefix="yes" type="transactions">
   <fields>
     <field name="question_id" type="integer" size="4" null="no" autoinc="yes"/>
     <field name="questiongroup_id" type="integer" size="4" null="no"/>
-    <field name="question_title" type="string" size="255" null="no"/>
-    <field name="question_description" type="string" size="65535" null="no"/>
-    <field name="question_type" type="string" size="10" null="no"/>
     <field name="question_order" type="integer" size="4" null="no"/>
+    <field name="question_type" type="string" size="10" null="no"/>
+    <field name="active" type="integer" size="4" null="no"/>
+    <field name="deleted" type="integer" size="4" null="no"/>
   </fields>
   <keys>
     <primary-key>
       <field>question_id</field>
     </primary-key>
+    <key name="active">
+      <field>active</field>
+    </key>
+    <key name="deleted">
+      <field>deleted</field>
+    </key>
   </keys>
 </table>

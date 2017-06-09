@@ -19,4 +19,5 @@ return array(
   'generalsurveyusersubjectlist' => '/General/Survey/User/Subject/List.php',
   'generalsurveyusersubject' => '/General/Survey/User/Subject.php',
   'generalsurvey' => '/General/Survey.php',
+  'generalsurveydatabaserecords' => '/General/Survey/Database/Records.php'
 );

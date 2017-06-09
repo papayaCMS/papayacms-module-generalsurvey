@@ -30,6 +30,12 @@ class GeneralSurveyAnswerList extends PapayaDatabaseObjectList {
   );
 
   /**
+   * Language ID
+   * @var integer
+   */
+  private $_language = 0;
+
+  /**
   * Load records from database
   *
   * @param array $filter optional, default empty array
@@ -97,7 +103,6 @@ class GeneralSurveyAnswerList extends PapayaDatabaseObjectList {
     }
     return $result;
   }
-
 
   /**
   * Move a record up by one position
@@ -195,5 +200,18 @@ class GeneralSurveyAnswerList extends PapayaDatabaseObjectList {
       }
     }
     return $maxOrder;
+  }
+
+  /**
+   * Get/set current language
+   *
+   * @param integer $language optional, default NULL
+   * @return integer
+   */
+  public function language($language = NULL) {
+    if ($language !== NULL) {
+      $this->_language = $language;
+    }
+    return $this->_language;
   }
 }

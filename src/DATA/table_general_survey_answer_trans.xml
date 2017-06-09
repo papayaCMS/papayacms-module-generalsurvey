@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<table name="general_survey_answer_trans" prefix="yes" type="transactions">
+  <fields>
+    <field name="answer_id" type="integer" size="4" null="no"/>
+    <field name="answer_language" type="integer" size="4" null="no"/>
+    <field name="question_id" type="integer" size="4" null="no"/>
+    <field name="answer_title" type="string" size="255" null="no"/>
+    <field name="answer_description" type="string" size="65535" null="no"/>
+  </fields>
+  <keys>
+    <primary-key>
+      <field>answer_id</field>
+      <field>answer_language</field>
+    </primary-key>
+  </keys>
+</table>
