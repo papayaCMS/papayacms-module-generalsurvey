@@ -2,6 +2,7 @@
 <table name="general_survey_answer" prefix="yes" type="transactions">
   <fields>
     <field name="answer_id" type="integer" size="4" null="no" autoinc="yes"/>
+    <field name="question_id" type="integer" size="4" null="no"/>
     <field name="answer_order" type="integer" size="4" null="no"/>
     <field name="active" type="integer" size="4" null="no"/>
     <field name="deleted" type="integer" size="4" null="no"/>

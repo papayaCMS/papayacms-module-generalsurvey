@@ -65,6 +65,43 @@ class GeneralSurveySubject extends PapayaDatabaseObjectRecord {
   }
 
   /**
+  * Get an alternate translation if the current language is not available
+  *
+  * @param integer $id
+  * @return array
+  */
+  public function getAlternateTranslation($id)
+  {
+    $result = [];
+    $sql = "SELECT s.subject_id, s.subject_parent_id, s.survey_id, st.subject_name
+              FROM %s s
+             INNER JOIN %s st
+                ON s.subject_id = st.subject_id
+             WHERE s.subject_id = %d
+               AND st.subject_language != %d
+               AND s.deleted = 0
+             ORDER BY st.subject_language ASC";
+    $parameters = [
+      $this->databaseGetTableName('general_survey_subject'),
+      $this->databaseGetTableName('general_survey_subject_trans'),
+      $id,
+      $this->language()
+    ];
+    if ($res = $this->databaseQueryFmt($sql, $parameters)) {
+      if ($row = $res->fetchRow(PapayaDatabaseResult::FETCH_ASSOC)) {
+        $result = [
+          'id' => $row['subject_id'],
+          'parent_id' => $row['subject_parent_id'],
+          'survey_id' => $row['survey_id'],
+          'name' => $row['subject_name'],
+          'ADD_TRANSLATION' => 1
+        ];
+      }
+    }
+    return $result;
+  }
+
+  /**
   * Save the current record to the database
   *
   * @return mixed integer|boolean

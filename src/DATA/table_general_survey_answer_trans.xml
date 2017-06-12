@@ -3,7 +3,6 @@
   <fields>
     <field name="answer_id" type="integer" size="4" null="no"/>
     <field name="answer_language" type="integer" size="4" null="no"/>
-    <field name="question_id" type="integer" size="4" null="no"/>
     <field name="answer_title" type="string" size="255" null="no"/>
     <field name="answer_description" type="string" size="65535" null="no"/>
   </fields>

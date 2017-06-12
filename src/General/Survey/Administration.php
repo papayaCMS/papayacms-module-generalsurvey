@@ -233,11 +233,24 @@ class GeneralSurveyAdministration extends base_object {
         $this->layout->addCenter($this->getStatisticXml());
       } else {
         $this->layout->addLeft($this->getQuestionGroupListXml());
-        $this->layout->addLeft($this->getSubjectListXml());
-        if ($survey['use_subjects'] && isset($this->params['subject_id'])) {
-          $this->layout->addLeft(
-            $this->getSubjectListXml($this->params['subject_id'], 'Child subjects')
-          );
+        if ($survey['use_subjects']) {
+          $this->layout->addLeft($this->getSubjectListXml());
+          if (isset($this->params['subject_id'])) {
+            $subject = $this->generalSurveySubject;
+            if ($subject->load($this->params['subject_id'])) {
+              $subjectData = iterator_to_array($subject);
+            } else {
+              $subjectData = $subject->getAlternateTranslation($this->params['subject_id']);
+            }
+            if ($subjectData['parent_id'] > 0) {
+              $parentId = $subjectData['parent_id'];
+            } else {
+              $parentId = $this->params['subject_id'];
+            }
+            $this->layout->addLeft(
+              $this->getSubjectListXml($parentId, 'Child subjects')
+            );
+          }
         }
         if (isset($this->params['questiongroup_id'])) {
           $this->layout->addCenter($this->getQuestionListXml());
@@ -412,20 +425,28 @@ class GeneralSurveyAdministration extends base_object {
   */
   public function getSubjectListXml($parentId = 0, $listTitle = 'Subjects') {
     $result = '';
-    $list = $this->generalSurveySubjectList;
-    if ($list->load(
-          array(
+    $limit = ($parentId == 0) ? $this->_subjectLimit : NULL;
+    $offset = ($parentId == 0 && isset($this->params['subject_offset'])) ?
+      $this->params['subject_offset'] :
+      0;
+    $list = $this->generalSurveySubjectList->getFull(
+          [
             'survey_id' => $this->params['survey_id'],
             'parent_id' => $parentId
-          ),
-          $this->_subjectLimit,
-          isset($this->params['subject_offset']) ? $this->params['subject_offset'] : 0
-        ) && count(iterator_to_array($list)) > 0) {
+          ],
+          $limit,
+          $offset
+        );
+    if (!empty($list)) {
       $result .= sprintf('<listview title="%s">'.LF, $this->_gt($listTitle));
-      $result .= '<buttons>'.LF;
-      $result .= $this->getSubjectPagingXml($list->getAbsCount());
-      $result .= $this->getSubjectLimitButtonsXml();
-      $result .= '</buttons>'.LF;
+      if ($parentId == 0) {
+        $result .= '<buttons>' . LF;
+        $result .= $this->getSubjectPagingXml(
+          $this->generalSurveySubjectList->getAbsCount()
+        );
+        $result .= $this->getSubjectLimitButtonsXml();
+        $result .= '</buttons>' . LF;
+      }
       $result .= '<cols>'.LF;
       $result .= sprintf('<col>%s</col>'.LF, $this->_gt('Subject'));
       $result .= '</cols>'.LF;
@@ -543,9 +564,10 @@ class GeneralSurveyAdministration extends base_object {
   */
   public function getAnswerListXml() {
     $result = '';
-    $list = $this->generalSurveyAnswerList;
-    if ($list->load(array('question_id' => $this->params['question_id']))) {
-      $array = iterator_to_array($list);
+    $array = $this->generalSurveyAnswerList->getFull(
+      ['question_id' => $this->params['question_id']]
+    );
+    if (!empty($array)) {
       if (count($array) > 0) {
       $result = sprintf('<listview title="%s">'.LF, $this->_gt('Answers'));
       $result .= '<cols>'.LF;
@@ -757,10 +779,14 @@ class GeneralSurveyAdministration extends base_object {
   */
   public function initializeSubjectDialog() {
     if (!is_object($this->_subjectDialog)) {
-      $subjects = array();
-      $subjectList = $this->generalSurveySubjectList;
-      if ($subjectList->load(array('survey_id' => $this->params['survey_id'])) &&
-          count(iterator_to_array($subjectList)) > 0) {
+      $subjects = [];
+      $subjectList = $this->generalSurveySubjectList->getFull(
+        [
+          'survey_id' => $this->params['survey_id'],
+          'parent_id' => 0
+        ]
+      );
+      if (count($subjectList) > 0) {
         foreach ($subjectList as $id => $data) {
           $subjects[$id] = $data['name'];
         }
@@ -776,12 +802,14 @@ class GeneralSurveyAdministration extends base_object {
         'name' => array('Name', 'isNoHTML', TRUE, 'input', 255),
         'parent_id' => array('Parent id', 'isNum', TRUE, 'combo', $subjects, '', 0)
       );
-      $data = array();
+      $data = [];
       if (isset($this->params['subject_id'])) {
         $subject = $this->generalSurveySubject;
         if ($subject->load($this->params['subject_id'])) {
           $data['name'] = $subject['name'];
           $data['parent_id'] = $subject['parent_id'];
+        } else {
+          $data = $subject->getAlternateTranslation($this->params['subject_id']);
         }
       }
       $hidden = array(
@@ -794,12 +822,15 @@ class GeneralSurveyAdministration extends base_object {
       $hidden = $this->_getLinkParams($hidden);
       $this->_subjectDialog = $this->_getDialogObject($fields, $data, $hidden);
       if (is_object($this->_subjectDialog)) {
-        if (!empty($data)) {
-          $this->_subjectDialog->dialogTitle = $this->_gt('Edit subject');
-          $this->_subjectDialog->buttonTitle = $this->_gt('Save');
-        } else {
+        if (empty($data)) {
           $this->_subjectDialog->dialogTitle = $this->_gt('Add subject');
           $this->_subjectDialog->buttonTitle = $this->_gt('Add');
+        } elseif (isset($data['ADD_TRANSLATION'])) {
+          $this->_subjectDialog->dialogTitle = $this->_gt('Add translation');
+          $this->_subjectDialog->buttonTitle = $this->_gt('Save');
+        } else {
+          $this->_subjectDialog->dialogTitle = $this->_gt('Edit subject');
+          $this->_subjectDialog->buttonTitle = $this->_gt('Save');
         }
         $this->_subjectDialog->loadParams();
       }
@@ -894,12 +925,16 @@ class GeneralSurveyAdministration extends base_object {
         'title' => array('Title', 'isNoHTML', TRUE, 'input', 255),
         'description' => array('Description', 'isSomeText', FALSE, 'richtext', 7)
       );
-      $data = array();
+      $data = [];
       if (isset($this->params['answer_id'])) {
         $answer = $this->generalSurveyAnswer;
         if ($answer->load($this->params['answer_id'])) {
           $data['title'] = $answer['title'];
           $data['description'] = $answer['description'];
+        } else {
+          $data = $this->generalSurveyAnswer->getAlternateTranslation(
+            $this->params['answer_id']
+          );
         }
       }
       $hidden = array(
@@ -914,12 +949,15 @@ class GeneralSurveyAdministration extends base_object {
       $hidden = $this->_getLinkParams($hidden);
       $this->_answerDialog = $this->_getDialogObject($fields, $data, $hidden);
       if (is_object($this->_answerDialog)) {
-        if (!empty($data)) {
-          $this->_answerDialog->dialogTitle = $this->_gt('Edit answer');
-          $this->_answerDialog->buttonTitle = $this->_gt('Save');
-        } else {
+        if (empty($data)) {
           $this->_answerDialog->dialogTitle = $this->_gt('Add answer');
           $this->_answerDialog->buttonTitle = $this->_gt('Add');
+        } elseif (isset($data['ADD_TRANSLATION'])) {
+          $this->_answerDialog->dialogTitle = $this->_gt('Add translation');
+          $this->_answerDialog->buttonTitle = $this->_gt('Save');
+        } else {
+          $this->_answerDialog->dialogTitle = $this->_gt('Edit answer');
+          $this->_answerDialog->buttonTitle = $this->_gt('Save');
         }
         $this->_answerDialog->loadParams();
       }
@@ -933,30 +971,32 @@ class GeneralSurveyAdministration extends base_object {
   */
   public function getDeleteSurveyDialog() {
     $result = '';
-    $survey = $this->generalSurvey;
-    if ($survey->load($this->params['survey_id'])) {
-      $data = iterator_to_array($survey);
-    } else {
-      $data = $survey->getAlternateTranslation($this->params['survey_id']);
-    }
-    if (!empty($data)) {
-      $hidden = $this->_getLinkParams(
-        array(
-          'cmd' => 'delete_survey',
-          'survey_id' => $this->params['survey_id'],
-          'confirm_delete' => 1
-        )
-      );
-      $dialog = $this->_getMsgDialogObject(
-        $hidden,
-        sprintf(
-          $this->_gt('Really delete survey "%s"?'),
-          papaya_strings::escapeHTMLChars($data['title'])
-        )
-      );
-      if (is_object($dialog)) {
-        $dialog->buttonTitle = 'Delete';
-        $result = $dialog->getMsgDialog();
+    if (isset($this->params['survey_id']) && !isset($this->params['confirm_delete'])) {
+      $survey = $this->generalSurvey;
+      if ($survey->load($this->params['survey_id'])) {
+        $data = iterator_to_array($survey);
+      } else {
+        $data = $survey->getAlternateTranslation($this->params['survey_id']);
+      }
+      if (!empty($data)) {
+        $hidden = $this->_getLinkParams(
+          array(
+            'cmd' => 'delete_survey',
+            'survey_id' => $this->params['survey_id'],
+            'confirm_delete' => 1
+          )
+        );
+        $dialog = $this->_getMsgDialogObject(
+          $hidden,
+          sprintf(
+            $this->_gt('Really delete survey "%s"?'),
+            papaya_strings::escapeHTMLChars($data['title'])
+          )
+        );
+        if (is_object($dialog)) {
+          $dialog->buttonTitle = 'Delete';
+          $result = $dialog->getMsgDialog();
+        }
       }
     }
     return $result;
@@ -969,31 +1009,33 @@ class GeneralSurveyAdministration extends base_object {
   */
   public function getDeleteQuestionGroupDialog() {
     $result = '';
-    $questionGroup = $this->generalSurveyQuestionGroup;
-    if ($questionGroup->load($this->params['questiongroup_id'])) {
-      $data = iterator_to_array($questionGroup);
-    } else {
-      $data = $questionGroup->getAlternateTranslation($this->params['questiongroup_id']);
-    }
-    if (!empty($data)) {
-      $hidden = $this->_getLinkParams(
-        array(
-          'cmd' => 'delete_questiongroup',
-          'survey_id' => $this->params['survey_id'],
-          'questiongroup_id' => $this->params['questiongroup_id'],
-          'confirm_delete' => 1
-        )
-      );
-      $dialog =$this->_getMsgDialogObject(
-        $hidden,
-        sprintf(
-          $this->_gt('Really delete question group "%s"?'),
-          papaya_strings::escapeHTMLChars($data['title'])
-        )
-      );
-      if (is_object($dialog)) {
-        $dialog->buttonTitle = 'Delete';
-        $result = $dialog->getMsgDialog();
+    if (isset($this->params['questiongroup_id']) && !isset($this->params['confirm_delete'])) {
+      $questionGroup = $this->generalSurveyQuestionGroup;
+      if ($questionGroup->load($this->params['questiongroup_id'])) {
+        $data = iterator_to_array($questionGroup);
+      } else {
+        $data = $questionGroup->getAlternateTranslation($this->params['questiongroup_id']);
+      }
+      if (!empty($data)) {
+        $hidden = $this->_getLinkParams(
+          array(
+            'cmd' => 'delete_questiongroup',
+            'survey_id' => $this->params['survey_id'],
+            'questiongroup_id' => $this->params['questiongroup_id'],
+            'confirm_delete' => 1
+          )
+        );
+        $dialog = $this->_getMsgDialogObject(
+          $hidden,
+          sprintf(
+            $this->_gt('Really delete question group "%s"?'),
+            papaya_strings::escapeHTMLChars($data['title'])
+          )
+        );
+        if (is_object($dialog)) {
+          $dialog->buttonTitle = 'Delete';
+          $result = $dialog->getMsgDialog();
+        }
       }
     }
     return $result;
@@ -1006,32 +1048,34 @@ class GeneralSurveyAdministration extends base_object {
   */
   public function getDeleteQuestionDialog() {
     $result = '';
-    $question = $this->generalSurveyQuestion;
-    if ($question->load($this->params['question_id'])) {
-      $data = iterator_to_array($question);
-    } else {
-      $data = $question->getAlternateTranslation($this->params['question_id']);
-    }
-    if (!empty($data)) {
-      $hidden = $this->_getLinkParams(
-        array(
-          'cmd' => 'delete_question',
-          'survey_id' => $this->params['survey_id'],
-          'questiongroup_id' => $this->params['questiongroup_id'],
-          'question_id' => $this->params['question_id'],
-          'confirm_delete' => 1
-        )
-      );
-      $dialog = $this->_getMsgDialogObject(
-        $hidden,
-        sprintf(
-          $this->_gt('Really delete question "%s"?'),
-          papaya_strings::escapeHTMLChars($data['title'])
-        )
-      );
-      if (is_object($dialog)) {
-        $dialog->buttonTitle = 'Delete';
-        $result = $dialog->getMsgDialog();
+    if (isset($this->params['question_id']) && !isset($this->params['confirm_delete'])) {
+      $question = $this->generalSurveyQuestion;
+      if ($question->load($this->params['question_id'])) {
+        $data = iterator_to_array($question);
+      } else {
+        $data = $question->getAlternateTranslation($this->params['question_id']);
+      }
+      if (!empty($data)) {
+        $hidden = $this->_getLinkParams(
+          array(
+            'cmd' => 'delete_question',
+            'survey_id' => $this->params['survey_id'],
+            'questiongroup_id' => $this->params['questiongroup_id'],
+            'question_id' => $this->params['question_id'],
+            'confirm_delete' => 1
+          )
+        );
+        $dialog = $this->_getMsgDialogObject(
+          $hidden,
+          sprintf(
+            $this->_gt('Really delete question "%s"?'),
+            papaya_strings::escapeHTMLChars($data['title'])
+          )
+        );
+        if (is_object($dialog)) {
+          $dialog->buttonTitle = 'Delete';
+          $result = $dialog->getMsgDialog();
+        }
       }
     }
     return $result;
@@ -1044,28 +1088,35 @@ class GeneralSurveyAdministration extends base_object {
   */
   public function getDeleteAnswerDialog() {
     $result = '';
-    $answer = $this->generalSurveyAnswer;
-    if ($answer->load($this->params['answer_id'])) {
-      $hidden = $this->_getLinkParams(
-        array(
-          'cmd' => 'delete_answer',
-          'survey_id' => $this->params['survey_id'],
-          'questiongroup_id' => $this->params['questiongroup_id'],
-          'question_id' => $this->params['question_id'],
-          'answer_id' => $this->params['answer_id'],
-          'confirm_delete' => 1
-        )
-      );
-      $dialog = $this->_getMsgDialogObject(
-        $hidden,
-        sprintf(
-          $this->_gt('Really delete answer "%s"?'),
-          papaya_strings::escapeHTMLChars($answer['title'])
-        )
-      );
-      if (is_object($dialog)) {
-        $dialog->buttonTitle = 'Delete';
-        $result = $dialog->getMsgDialog();
+    if (isset($this->params['answer_id']) && !isset($this->params['confirm_delete'])) {
+      $answer = $this->generalSurveyAnswer;
+      if ($answer->load($this->params['answer_id'])) {
+        $data = iterator_to_array($answer);
+      } else {
+        $data = $answer->getAlternateTranslation($this->params['answer_id']);
+      }
+      if (!empty($data)) {
+        $hidden = $this->_getLinkParams(
+          array(
+            'cmd' => 'delete_answer',
+            'survey_id' => $this->params['survey_id'],
+            'questiongroup_id' => $this->params['questiongroup_id'],
+            'question_id' => $this->params['question_id'],
+            'answer_id' => $this->params['answer_id'],
+            'confirm_delete' => 1
+          )
+        );
+        $dialog = $this->_getMsgDialogObject(
+          $hidden,
+          sprintf(
+            $this->_gt('Really delete answer "%s"?'),
+            papaya_strings::escapeHTMLChars($data['title'])
+          )
+        );
+        if (is_object($dialog)) {
+          $dialog->buttonTitle = 'Delete';
+          $result = $dialog->getMsgDialog();
+        }
       }
     }
     return $result;
@@ -1078,9 +1129,14 @@ class GeneralSurveyAdministration extends base_object {
   */
   public function getDeleteSubjectDialog() {
     $result = '';
-    if (!isset($this->params['confirm_delete'])) {
-      $answer = $this->generalSurveySubject;
-      if ($answer->load($this->params['subject_id'])) {
+    if (isset($this->params['subject_id']) && !isset($this->params['confirm_delete'])) {
+      $subject = $this->generalSurveySubject;
+      if ($subject->load($this->params['subject_id'])) {
+        $data = iterator_to_array($subject);
+      } else {
+        $data = $subject->getAlternateTranslation($this->params['subject_id']);
+      }
+      if (!empty($data)) {
         $hidden = $this->_getLinkParams(
           array(
             'cmd' => 'delete_subject',
@@ -1093,7 +1149,7 @@ class GeneralSurveyAdministration extends base_object {
           $hidden,
           sprintf(
             $this->_gt('Really delete subject "%s"?'),
-            papaya_strings::escapeHTMLChars($answer['name'])
+            papaya_strings::escapeHTMLChars($data['name'])
           )
         );
         if (is_object($dialog)) {

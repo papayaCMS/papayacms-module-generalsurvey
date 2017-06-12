@@ -48,24 +48,106 @@ class GeneralSurveySubjectList extends PapayaDatabaseObjectList {
              INNER JOIN %s st
                 ON s.subject_id = st.subject_id";
     $conditions = [
-      's.deleted' => 0,
-      'st.subject_language' => $this->language()
+      $this->databaseGetSqlCondition('s.deleted', 0),
+      $this->databaseGetSqlCondition('st.subject_language', $this->language())
     ];
     if (is_array($filter) && !empty($filter)) {
       $mapping = array_flip($this->_fieldMapping);
       foreach ($filter as $field => $value) {
-        if (in_array($field, array('id', 'parent_id', 'survey_id'))) {
-          $conditions[] = $this->databaseGetSqlCondition($mapping[$field], $value);
+        if (in_array($field, ['id', 'parent_id', 'survey_id'])) {
+          $conditions[] = $this->databaseGetSqlCondition('s.'.$mapping[$field], $value);
         }
       }
     }
     $sql .= str_replace('%', '%%', " WHERE ".implode(" AND ", $conditions));
-    $sql .= " ORDER BY survey_id, subject_parent_id, subject_name";
+    $sql .= " ORDER BY s.survey_id, s.subject_parent_id, st.subject_name";
     $parameters = [
       $this->databaseGetTableName('general_survey_subject'),
       $this->databaseGetTableName('general_survey_subject_trans')
     ];
     return $this->_loadRecords($sql, $parameters, 'subject_id', $limit, $offset);
+  }
+
+  /**
+  * Get the full list of subjects, including those without translation in current language
+  *
+  * @param array $filter optional, default empty array
+  * @param integer|NULL $limit optional, default NULL
+  * @param integer|NULL $offset optional, default NULL
+  * @return array
+  */
+  public function getFull($filter = [], $limit = NULL, $offset = NULL) {
+    $result = [];
+    $sql = "SELECT s.subject_id, s.subject_parent_id, s.survey_id, st.subject_name
+              FROM %s s
+             INNER JOIN %s st
+                ON s.subject_id = st.subject_id";
+    $conditions = [
+      $this->databaseGetSqlCondition('s.deleted', 0),
+      $this->databaseGetSqlCondition('st.subject_language', $this->language())
+    ];
+    if (is_array($filter) && !empty($filter)) {
+      $mapping = array_flip($this->_fieldMapping);
+      foreach ($filter as $field => $value) {
+        if (in_array($field, ['id', 'parent_id', 'survey_id'])) {
+          $conditions[] = $this->databaseGetSqlCondition('s.'.$mapping[$field], $value);
+        }
+      }
+    }
+    $sql .= str_replace('%', '%%', " WHERE ".implode(" AND ", $conditions));
+    $sql .= " ORDER BY s.survey_id, s.subject_parent_id, st.subject_name";
+    $parameters = [
+      $this->databaseGetTableName('general_survey_subject'),
+      $this->databaseGetTableName('general_survey_subject_trans')
+    ];
+    if ($res = $this->databaseQueryFmt($sql, $parameters, $limit, $offset)) {
+      while ($row = $res->fetchRow(DB_FETCHMODE_ASSOC)) {
+        $result[$row['subject_id']] = [
+          'id' => $row['subject_id'],
+          'parent_id' => $row['subject_parent_id'],
+          'survey_id' => $row['survey_id'],
+          'name' => $row['subject_name'],
+          'HAS_CURRENT_LANGUAGE' => 1
+        ];
+      }
+    }
+    $sql = "SELECT s.subject_id, s.subject_parent_id, s.survey_id, st.subject_name
+              FROM %s s
+             INNER JOIN %s st
+                ON s.subject_id = st.subject_id
+             WHERE st.subject_language != %d";
+    $conditions = [
+      $this->databaseGetSqlCondition('s.deleted', 0)
+    ];
+    if (is_array($filter) && !empty($filter)) {
+      $mapping = array_flip($this->_fieldMapping);
+      foreach ($filter as $field => $value) {
+        if (in_array($field, ['id', 'parent_id', 'survey_id'])) {
+          $conditions[] = $this->databaseGetSqlCondition('s.'.$mapping[$field], $value);
+        }
+      }
+    }
+    $sql .= str_replace('%', '%%', " AND ".implode(" AND ", $conditions));
+    $sql .= " ORDER BY s.survey_id, s.subject_parent_id, st.subject_name";
+    $parameters = [
+      $this->databaseGetTableName('general_survey_subject'),
+      $this->databaseGetTableName('general_survey_subject_trans'),
+      $this->language()
+    ];
+    if ($res = $this->databaseQueryFmt($sql, $parameters, $limit, $offset)) {
+      while ($row = $res->fetchRow(DB_FETCHMODE_ASSOC)) {
+        if (!array_key_exists($row['subject_id'], $result)) {
+          $result[$row['subject_id']] = [
+            'id' => $row['subject_id'],
+            'parent_id' => $row['subject_parent_id'],
+            'survey_id' => $row['survey_id'],
+            'name' => sprintf('[%s]', $row['subject_name']),
+            'HAS_CURRENT_LANGUAGE' => 0
+          ];
+        }
+      }
+    }
+    return $result;
   }
 
   /**
@@ -93,7 +175,7 @@ class GeneralSurveySubjectList extends PapayaDatabaseObjectList {
   }
 
   /**
-  * Get absoulute count of last query
+  * Get absolute count of last query
   *
   * @return integer
   */
