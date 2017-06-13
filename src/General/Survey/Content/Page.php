@@ -27,10 +27,11 @@ class GeneralSurveyContentPage extends base_content {
   * Page configuration edit fields
   * @var array
   */
-  public $editFields = array(
-    'survey_id' => array('Survey', 'isNum', TRUE, 'function', 'callbackSurvey'),
-    'max_subjects' => array('Max. subjects', 'isNum', TRUE, 'input', 10, '', 3),
-    'text_done' => array(
+  public $editFields = [
+    'survey_id' => ['Survey', 'isNum', TRUE, 'function', 'callbackSurvey'],
+    'use_login' => ['Use login', 'isNum', TRUE, 'radio', [0 => 'No', 1 => 'Yes'], '', 1],
+    'max_subjects' => ['Max. subjects', 'isNum', TRUE, 'input', 10, '', 3],
+    'text_done' => [
       'Text survey done',
       'isSomeText',
       TRUE,
@@ -38,9 +39,9 @@ class GeneralSurveyContentPage extends base_content {
       7,
       '',
       'Thank you.'
-    ),
+    ],
     'Captions',
-    'head_select_subject' => array(
+    'head_select_subject' => [
       'Select subject heading',
       'isNoHTML',
       TRUE,
@@ -48,8 +49,8 @@ class GeneralSurveyContentPage extends base_content {
       200,
       '',
       'Select the subject'
-    ),
-    'caption_subject' => array(
+    ],
+    'caption_subject' => [
       'Subject',
       'isNoHTML',
       TRUE,
@@ -57,8 +58,8 @@ class GeneralSurveyContentPage extends base_content {
       200,
       '',
       'Subject'
-    ),
-    'caption_current_subject' => array(
+    ],
+    'caption_current_subject' => [
       'Current subject',
       'isNoHTML',
       TRUE,
@@ -66,8 +67,8 @@ class GeneralSurveyContentPage extends base_content {
       200,
       '',
       'Current subject'
-    ),
-    'caption_subject_select' => array(
+    ],
+    'caption_subject_select' => [
       'Select subject',
       'isNoHTML',
       TRUE,
@@ -75,8 +76,8 @@ class GeneralSurveyContentPage extends base_content {
       200,
       '',
       'Please select'
-    ),
-    'caption_next' => array(
+    ],
+    'caption_next' => [
       'Next',
       'isNoHTML',
       TRUE,
@@ -84,8 +85,8 @@ class GeneralSurveyContentPage extends base_content {
       200,
       '',
       'Next'
-    ),
-    'caption_repeat' => array(
+    ],
+    'caption_repeat' => [
       'Repeat survey',
       'isNoHTML',
       TRUE,
@@ -93,9 +94,9 @@ class GeneralSurveyContentPage extends base_content {
       200,
       '',
       'Repeat with another subject'
-    ),
+    ],
     'Error messages',
-    'error_no_user' => array(
+    'error_no_user' => [
       'No user',
       'isNoHTML',
       TRUE,
@@ -103,8 +104,8 @@ class GeneralSurveyContentPage extends base_content {
       200,
       '',
       'You need to be logged in to take part in the survey.'
-    ),
-    'error_no_survey' => array(
+    ],
+    'error_no_survey' => [
       'No survey',
       'isNoHTML',
       TRUE,
@@ -112,8 +113,8 @@ class GeneralSurveyContentPage extends base_content {
       200,
       '',
       'No survey selected.'
-    ),
-    'error_subjects' => array(
+    ],
+    'error_subjects' => [
       'Too many subjects',
       'isNoHTML',
       TRUE,
@@ -121,8 +122,8 @@ class GeneralSurveyContentPage extends base_content {
       200,
       '',
       'You have already answerd for too many subjects.'
-    ),
-    'error_input' => array(
+    ],
+    'error_input' => [
       'Input error',
       'isNoHTML',
       TRUE,
@@ -130,8 +131,8 @@ class GeneralSurveyContentPage extends base_content {
       200,
       '',
       'Please answer the unanswered questions.'
-    )
-  );
+    ]
+  ];
 
   /**
   * Content object
@@ -152,7 +153,9 @@ class GeneralSurveyContentPage extends base_content {
     $result = '';
     if ($surfer->isValid) {
       $content->userId($surfer->surferId);
-      //$content->userId('fb8681678f9ce34e799039b08f6adeae'); // DEBUG
+      $result = $content->getContentXml();
+    } elseif ($this->data['use_login'] == 0) {
+      $content->userId($this->papaya()->session->id);
       $result = $content->getContentXml();
     } else {
       $result = $content->getMessageXml($this->data['error_no_user']);
@@ -166,6 +169,7 @@ class GeneralSurveyContentPage extends base_content {
   * @param string $name
   * @param array $field
   * @param integer $value
+  * @return string
   */
   public function callbackSurvey($name, $field, $value) {
     return $this->content()->getSurveySelector($name, $value);

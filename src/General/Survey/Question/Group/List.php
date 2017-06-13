@@ -197,7 +197,7 @@ class GeneralSurveyQuestionGroupList extends PapayaDatabaseObjectList {
         $this->databaseGetTableName('general_survey_questiongroup'),
         $records[$id]['survey_id'],
         $records[$id]['order'] - 1
-      ]; vprintf($sql, $parameters);
+      ];
       $this->databaseQueryFmtWrite($sql, $parameters);
       $sql = "UPDATE %s
                  SET questiongroup_order = questiongroup_order - 1
@@ -205,7 +205,7 @@ class GeneralSurveyQuestionGroupList extends PapayaDatabaseObjectList {
       $parameters = [
         $this->databaseGetTableName('general_survey_questiongroup'),
         $id
-      ]; vprintf($sql, $parameters);
+      ];
       $result = (FALSE !== $this->databaseQueryFmtWrite($sql, $parameters));
     }
     return $result;

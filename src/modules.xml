@@ -18,6 +18,13 @@
             file="General/Survey/Content/Page.php">
         Survey Page Module
     </module>
+    <module type="connector"
+            guid="c8da1cdeff8efa9646f0a0334f636221"
+            name="Survey Connector"
+            class="GeneralSurveyConnector"
+            file="General/Survey/Connector.php">
+      Connector to provide Survey functionality to other modules
+    </module>
   </modules>
   <tables>
     <table name="general_survey"/>

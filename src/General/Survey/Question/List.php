@@ -51,8 +51,8 @@ class GeneralSurveyQuestionList extends PapayaDatabaseObjectList {
              INNER JOIN %s qt
                 ON q.question_id = qt.question_id";
     $conditions = [
-      'deleted' => 0,
-      'question_language' => $this->language()
+      $this->databaseGetSqlCondition('deleted', 0),
+      $this->databaseGetSqlCondition('question_language', $this->language())
     ];
     if (!empty($filter) && is_array($filter)) {
       $mapping = array_flip($this->_fieldMapping);
@@ -66,10 +66,10 @@ class GeneralSurveyQuestionList extends PapayaDatabaseObjectList {
       $sql .= str_replace('%', '%%', " WHERE ".implode(" AND ", $conditions));
     }
     $sql .= " ORDER BY q.questiongroup_id, q.question_order";
-    $parameters = array(
+    $parameters = [
       $this->databaseGetTableName('general_survey_question'),
       $this->databaseGetTableName('general_survey_question_trans')
-    );
+    ];
     return $this->_loadRecords($sql, $parameters, 'question_id', $limit, $offset);
   }
 

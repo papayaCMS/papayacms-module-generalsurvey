@@ -60,6 +60,12 @@ class GeneralSurveyContent extends base_object {
   protected $_dialog = NULL;
 
   /**
+  * Use subject
+  * @var boolean
+  */
+  protected $_useSubjects = TRUE;
+
+  /**
   * Set the owner object
   *
   * @param GeneralSurveyContentPage $owner
@@ -128,27 +134,29 @@ class GeneralSurveyContent extends base_object {
   */
   public function saveSurvey($surveyId, $step) {
     if ($answers = $this->checkAnswers($step)) {
-      $sessionKey = array(
+      $sessionKey = [
         $this,
         'survey_'.$surveyId,
-        'subject_'.$this->_owner->params['subject_id']
-      );
+        'subject_'.$this->subject()
+      ];
       $answers = array_merge(
         $answers,
         $this->papaya()->session->values->get($sessionKey)
       );
       $result = $this->generalSurveyResult;
-      $result['subject_id'] = $this->_owner->params['subject_id'];
+      $result['subject_id'] = $this->subject();
       foreach ($answers as $answerId) {
         $result['answer_id'] = $answerId;
         if (!$result->save()) {
           return FALSE;
         }
       }
-      $userSubject = $this->generalSurveyUserSubject;
-      $userSubject['user_id'] = $this->userId();
-      $userSubject['subject_id'] = $this->_owner->params['subject_id'];
-      $userSubject->save();
+      if ($this->_useSubjects) {
+        $userSubject = $this->generalSurveyUserSubject;
+        $userSubject['user_id'] = $this->userId();
+        $userSubject['subject_id'] = $this->_owner->params['subject_id'];
+        $userSubject->save();
+      }
       unset($this->papaya()->session->values[$sessionKey]);
       return TRUE;
     }
@@ -166,11 +174,11 @@ class GeneralSurveyContent extends base_object {
     $result = FALSE;
     if ($answers = $this->checkAnswers($step)) {
       $result = TRUE;
-      $sessionKey = array(
+      $sessionKey = [
         $this,
         'survey_'.$surveyId,
-        'subject_'.$this->_owner->params['subject_id']
-      );
+        'subject_'.$this->subject()
+      ];
       $sessionValues = $this->papaya()->session->values->get($sessionKey);
       if (empty($sessionValues)) {
         $sessionValues = array();
@@ -193,17 +201,22 @@ class GeneralSurveyContent extends base_object {
     $result = '';
     $subjectList = $this->generalSurveySubjectList;
     if ($subjectList->load(array('survey_id' => $surveyId))) {
-      $subjects = array(0 => sprintf('[%s]', $this->_owner->data['caption_subject_select']));
+      $subjects = [0 => sprintf('[%s]', $this->_owner->data['caption_subject_select'])];
       foreach ($subjectList as $id => $data) {
         $subjects[$id] = papaya_strings::escapeHTMLChars($data['name']);
       }
-      $userSubjectList = $this->generalSurveyUserSubjectList;
-      if ($userSubjectList->load(array('user_id' => $this->userId()))) {
-        foreach ($userSubjectList as $data) {
-          unset($subjects[$data['subject_id']]);
+      $allowed = TRUE;
+      if (isset($this->_owner->data['use_login']) &&
+          $this->_owner->data['use_login']) {
+        $userSubjectList = $this->generalSurveyUserSubjectList;
+        if ($userSubjectList->load(array('user_id' => $this->userId()))) {
+          foreach ($userSubjectList as $data) {
+            unset($subjects[$data['subject_id']]);
+          }
         }
+        $allowed = count($userSubjectList) < $this->_owner->data['max_subjects'];
       }
-      if (count($userSubjectList) >= $this->_owner->data['max_subjects']) {
+      if (!$allowed) {
         $result = $this->getMessageXml($this->_owner->data['error_subjects'], 'info');
       } else {
         $result = '<subject-select>'.LF;
@@ -259,18 +272,21 @@ class GeneralSurveyContent extends base_object {
       $result .= $this->getMessageXml($this->_owner->data['error_input']);
     }
     if ($step == 0 &&
+        $this->_useSubjects &&
         (!isset($this->_owner->params['subject_id'])  ||
          $this->_owner->params['subject_id'] == 0)) {
       $result .= $this->getSubjectSelector($surveyId);
       return $result;
     }
-    $subject = $this->generalSurveySubject;
-    if ($subject->load($this->_owner->params['subject_id'])) {
-      $result .= sprintf(
-        '<subject caption="%s">%s</subject>'.LF,
-        papaya_strings::escapeHTMLChars($this->_owner->data['caption_current_subject']),
-        $subject['name']
-      );
+    if ($this->_useSubjects) {
+      $subject = $this->generalSurveySubject;
+      if ($subject->load($this->_owner->params['subject_id'])) {
+        $result .= sprintf(
+          '<subject caption="%s">%s</subject>' . LF,
+          papaya_strings::escapeHTMLChars($this->_owner->data['caption_current_subject']),
+          $subject['name']
+        );
+      }
     }
     $questionGroupList = $this->generalSurveyQuestionGroupList;
     if ($questionGroupList->load(array('survey_id' => $surveyId))) {
@@ -337,7 +353,7 @@ class GeneralSurveyContent extends base_object {
         if (count($fields) > 0) {
           $hidden = array(
             'step' => $questionGroupId,
-            'subject_id' => $this->_owner->params['subject_id'],
+            'subject_id' => $this->subject(),
             'save' => 1
           );
           if ($nextStep > 0) {
@@ -366,12 +382,18 @@ class GeneralSurveyContent extends base_object {
   * @return string XML
   */
   public function getRepeatXml() {
-    $subjectCount = 0;
-    $userSubjectList = $this->generalSurveyUserSubjectList;
-    if ($userSubjectList->load(array('user_id' => $this->userId()))) {
-      $subjectCount = count($userSubjectList);
+    $allowed = TRUE;
+    if (!$this->_useSubjects) {
+      $allowed = FALSE;
+    } else {
+      $subjectCount = 0;
+      $userSubjectList = $this->generalSurveyUserSubjectList;
+      if ($userSubjectList->load(array('user_id' => $this->userId()))) {
+        $subjectCount = count($userSubjectList);
+      }
+      $allowed = ($subjectCount < $this->_owner->data['max_subjects']);
     }
-    if ($subjectCount >= $this->_owner->data['max_subjects']) {
+    if ($allowed) {
       $result = $this->getMessageXml($this->_owner->data['error_subjects'], 'info');
     } else {
       $result = sprintf(
@@ -412,6 +434,7 @@ class GeneralSurveyContent extends base_object {
       $step = $this->_owner->params['step'];
     }
     if ($survey->load($surveyId)) {
+      $this->_useSubjects = ($survey['use_subjects'] > 0);
       $finalized = FALSE;
       $saved = FALSE;
       $submitted = isset($this->_owner->params['save']);
@@ -463,6 +486,7 @@ class GeneralSurveyContent extends base_object {
   *
   * @param string $name
   * @param integer $value
+  * @return string
   */
   public function getSurveySelector($name, $value) {
     $result = '';
@@ -500,6 +524,15 @@ class GeneralSurveyContent extends base_object {
       $this->_dialog = new base_dialog($this, $this->_owner->paramName, $fields, $data, $hidden);
     }
     return $this->_dialog;
+  }
+
+  /**
+  * Get current subject or 0 if not using subjects
+  *
+  * @return int
+  */
+  private function subject() {
+    return $this->_useSubjects ? $this->_owner->params['subject_id'] : 0;
   }
 
   // Helpers
@@ -543,8 +576,21 @@ class GeneralSurveyContent extends base_object {
   public function __get($name) {
     if (preg_match('(^generalSurvey)', $name)) {
       if (!isset($this->_instances[$name])) {
-        $className = preg_replace('(^d)', 'D', $name);
+        $className = preg_replace('(^g)', 'G', $name);
         $this->_instances[$name] = new $className;
+      }
+      if (isset($this->_owner) && isset($this->_owner->parentObj) &&
+          isset($this->_owner->parentObj->currentLanguage) &&
+          is_object($this->_owner->parentObj->currentLanguage)) {
+        $this->_instances[$name]->language(
+          $this->_owner->parentObj->currentLanguage->id
+        );
+      } elseif (isset($this->papaya()->administrationLanguage)) {
+        $this->_instances[$name]->language(
+          $this->papaya()->administrationLanguage->id
+        );
+      } else {
+        throw new RuntimeException('Unable to set language for instance of '.$className);
       }
       return $this->_instances[$name];
     } else {
