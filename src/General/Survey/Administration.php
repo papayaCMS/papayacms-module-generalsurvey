@@ -39,13 +39,13 @@ class GeneralSurveyAdministration extends base_object {
   * Icons
   * @var array
   */
-  public $images = array();
+  public $images = [];
 
   /**
   * Messages to be displayed
   * @var array
   */
-  public $msgs = array();
+  public $msgs = [];
 
   /**
   * The layout instance to display the UI
@@ -69,7 +69,7 @@ class GeneralSurveyAdministration extends base_object {
   * Request parameters
   * @var array
   */
-  public $params = array();
+  public $params = [];
 
   /**
   * Basic link without parameters
@@ -129,11 +129,11 @@ class GeneralSurveyAdministration extends base_object {
   * List of available limit settings
   * @var array
   */
-  private $_availableLimits = array(
+  private $_availableLimits = [
     10 => 10,
     20 => 20,
     50 => 50
-  );
+  ];
 
   /**
   * Current limit for subjects
@@ -145,13 +145,13 @@ class GeneralSurveyAdministration extends base_object {
   * Instances of GeneralSurvey* classes
   * @var array
   */
-  protected $_instances = array();
+  protected $_instances = [];
 
   /**
   * Initialize the module
   */
   public function initialize() {
-    spl_autoload_register(array($this, 'generalSurveyAutoload'));
+    spl_autoload_register([$this, 'generalSurveyAutoload']);
     $this->initializeParams();
     if (isset($this->params['subject_limit']) &&
         in_array($this->params['subject_limit'], $this->_availableLimits)) {
@@ -322,7 +322,7 @@ class GeneralSurveyAdministration extends base_object {
         $result .= sprintf(
           '<listitem href="%s" title="%s"%s />'.LF,
           $this->_getLinkWithParams(
-            array('cmd' => 'edit_survey', 'survey_id' => $id),
+            ['cmd' => 'edit_survey', 'survey_id' => $id],
             $this->paramName
           ),
           papaya_strings::escapeHTMLChars($record['title']),
@@ -366,11 +366,11 @@ class GeneralSurveyAdministration extends base_object {
           $result .= sprintf(
             '<listitem href="%s" title="%s"%s>' . LF,
             $this->_getLinkWithParams(
-              array(
+              [
                 'cmd' => 'edit_questiongroup',
                 'survey_id' => $this->params['survey_id'],
                 'questiongroup_id' => $id
-              )
+              ]
             ),
             papaya_strings::escapeHTMLChars($record['title']),
             $selected
@@ -379,11 +379,11 @@ class GeneralSurveyAdministration extends base_object {
             $result .= sprintf(
               '<subitem><a href="%s"><glyph src="%s" hint="%s" /></a></subitem>' . LF,
               $this->_getLinkWithParams(
-                array(
+                [
                   'cmd' => 'move_up_questiongroup',
                   'survey_id' => $this->params['survey_id'],
                   'questiongroup_id' => $id
-                )
+                ]
               ),
               papaya_strings::escapeHTMLChars($this->images['actions-go-up']),
               $this->_gt('Move up')
@@ -395,11 +395,11 @@ class GeneralSurveyAdministration extends base_object {
             $result .= sprintf(
               '<subitem><a href="%s"><glyph src="%s" hint="%s" /></a></subitem>' . LF,
               $this->_getLinkWithParams(
-                array(
+                [
                   'cmd' => 'move_down_questiongroup',
                   'survey_id' => $this->params['survey_id'],
                   'questiongroup_id' => $id
-                )
+                ]
               ),
               papaya_strings::escapeHTMLChars($this->images['actions-go-down']),
               $this->_gt('Move down')
@@ -460,11 +460,11 @@ class GeneralSurveyAdministration extends base_object {
         $result .= sprintf(
           '<listitem href="%s" title="%s"%s />'.LF,
           $this->_getLinkWithParams(
-            array(
+            [
               'cmd' => 'edit_subject',
               'survey_id' => $this->params['survey_id'],
               'subject_id' => $id
-            )
+            ]
           ),
           papaya_strings::escapeHTMLChars($record['name']),
           $selected
@@ -505,12 +505,12 @@ class GeneralSurveyAdministration extends base_object {
         $result .= sprintf(
           '<listitem href="%s" title="%s"%s>'.LF,
           $this->_getLinkWithParams(
-            array(
+            [
               'cmd' => 'edit_question',
               'survey_id' => $this->params['survey_id'],
               'questiongroup_id' => $this->params['questiongroup_id'],
               'question_id' => $id
-            )
+            ]
           ),
           papaya_strings::escapeHTMLChars($record['title']),
           $selected
@@ -519,12 +519,12 @@ class GeneralSurveyAdministration extends base_object {
           $result .= sprintf(
             '<subitem><a href="%s"><glyph src="%s" hint="%s" /></a></subitem>'.LF,
             $this->_getLinkWithParams(
-              array(
+              [
                 'cmd' => 'move_up_question',
                 'survey_id' => $this->params['survey_id'],
                 'questiongroup_id' => $this->params['questiongroup_id'],
                 'question_id' => $id
-              )
+              ]
             ),
             papaya_strings::escapeHTMLChars($this->images['actions-go-up']),
             $this->_gt('Move up')
@@ -536,12 +536,12 @@ class GeneralSurveyAdministration extends base_object {
           $result .= sprintf(
             '<subitem><a href="%s"><glyph src="%s" hint="%s" /></a></subitem>'.LF,
             $this->_getLinkWithParams(
-              array(
+              [
                 'cmd' => 'move_down_question',
                 'survey_id' => $this->params['survey_id'],
                 'questiongroup_id' => $this->params['questiongroup_id'],
                 'question_id' => $id
-              )
+              ]
             ),
             papaya_strings::escapeHTMLChars($this->images['actions-go-down']),
             $this->_gt('Move down')
@@ -587,13 +587,13 @@ class GeneralSurveyAdministration extends base_object {
         $result .= sprintf(
           '<listitem href="%s" title="%s"%s>'.LF,
           $this->_getLinkWithParams(
-            array(
+            [
               'cmd' => 'edit_answer',
               'survey_id' => $this->params['survey_id'],
               'questiongroup_id' => $this->params['questiongroup_id'],
               'question_id' => $this->params['question_id'],
               'answer_id' => $id
-            )
+            ]
           ),
           papaya_strings::escapeHTMLChars($record['title']),
           $selected
@@ -602,13 +602,13 @@ class GeneralSurveyAdministration extends base_object {
           $result .= sprintf(
             '<subitem><a href="%s"><glyph src="%s" hint="%s" /></a></subitem>'.LF,
             $this->_getLinkWithParams(
-              array(
+              [
                 'cmd' => 'move_up_answer',
                 'survey_id' => $this->params['survey_id'],
                 'questiongroup_id' => $this->params['questiongroup_id'],
                 'question_id' => $this->params['question_id'],
                 'answer_id' => $id
-              )
+              ]
             ),
             papaya_strings::escapeHTMLChars($this->images['actions-go-up']),
             $this->_gt('Move up')
@@ -620,13 +620,13 @@ class GeneralSurveyAdministration extends base_object {
           $result .= sprintf(
             '<subitem><a href="%s"><glyph src="%s" hint="%s" /></a></subitem>'.LF,
             $this->_getLinkWithParams(
-              array(
+              [
                 'cmd' => 'move_down_answer',
                 'survey_id' => $this->params['survey_id'],
                 'questiongroup_id' => $this->params['questiongroup_id'],
                 'question_id' => $this->params['question_id'],
                 'answer_id' => $id
-              )
+              ]
             ),
             papaya_strings::escapeHTMLChars($this->images['actions-go-down']),
             $this->_gt('Move down')
@@ -684,25 +684,25 @@ class GeneralSurveyAdministration extends base_object {
       ];
       if (isset($this->params['survey_id'])) {
         $data = $this->loadSurvey($this->params['survey_id']);
-        $hidden = array('cmd' => 'save_survey');
-        if (!empty($data)) {
-          $hidden['survey_id'] = $this->params['survey_id'];
+      }
+      $hidden = ['cmd' => 'save_survey'];
+      if (!empty($data)) {
+        $hidden['survey_id'] = $this->params['survey_id'];
+      }
+      $hidden = $this->_getLinkParams($hidden);
+      $this->_surveyDialog = $this->_getDialogObject($fields, $data, $hidden);
+      if (is_object($this->_surveyDialog)) {
+        if (empty($data)) {
+          $this->_surveyDialog->dialogTitle = $this->_gt('Add survey');
+          $this->_surveyDialog->buttonTitle = $this->_gt('Add');
+        } elseif (isset($data['ADD_TRANSLATION'])) {
+          $this->_surveyDialog->dialogTitle = $this->_gt('Add translation');
+          $this->_surveyDialog->buttonTitle = $this->_gt('Save');
+        } else {
+          $this->_surveyDialog->dialogTitle = $this->_gt('Edit survey');
+          $this->_surveyDialog->buttonTitle = $this->_gt('Save');
         }
-        $hidden = $this->_getLinkParams($hidden);
-        $this->_surveyDialog = $this->_getDialogObject($fields, $data, $hidden);
-        if (is_object($this->_surveyDialog)) {
-          if (empty($data)) {
-            $this->_surveyDialog->dialogTitle = $this->_gt('Add survey');
-            $this->_surveyDialog->buttonTitle = $this->_gt('Add');
-          } elseif (isset($data['ADD_TRANSLATION'])) {
-            $this->_surveyDialog->dialogTitle = $this->_gt('Add translation');
-            $this->_surveyDialog->buttonTitle = $this->_gt('Save');
-          } else {
-            $this->_surveyDialog->dialogTitle = $this->_gt('Edit survey');
-            $this->_surveyDialog->buttonTitle = $this->_gt('Save');
-          }
-          $this->_surveyDialog->loadParams();
-        }
+        $this->_surveyDialog->loadParams();
       }
     }
   }
@@ -724,11 +724,11 @@ class GeneralSurveyAdministration extends base_object {
   */
   public function initializeQuestionGroupDialog() {
     if (!is_object($this->_questionGroupDialog)) {
-      $fields = array(
-        'title' => array('Title', 'isNoHTML', TRUE, 'input', 255),
-        'description' => array('Description', 'isSomeText', FALSE, 'richtext', 7)
-      );
-      $data = array();
+      $fields = [
+        'title' => ['Title', 'isNoHTML', TRUE, 'input', 255],
+        'description' => ['Description', 'isSomeText', FALSE, 'richtext', 7]
+      ];
+      $data = [];
       if (isset($this->params['questiongroup_id'])) {
         $questionGroup = $this->generalSurveyQuestionGroup;
         if ($questionGroup->load($this->params['questiongroup_id'])) {
@@ -738,7 +738,7 @@ class GeneralSurveyAdministration extends base_object {
           $data = $questionGroup->getAlternateTranslation($this->params['questiongroup_id']);
         }
       }
-      $hidden = array('cmd' => 'save_questiongroup', 'survey_id' => $this->params['survey_id']);
+      $hidden = ['cmd' => 'save_questiongroup', 'survey_id' => $this->params['survey_id']];
       if (!empty($data)) {
         $hidden['questiongroup_id'] = $this->params['questiongroup_id'];
       }
@@ -795,13 +795,13 @@ class GeneralSurveyAdministration extends base_object {
         unset($subjects[$this->params['subject_id']]);
       }
       $subjects = array_merge(
-        array(0 => sprintf('[%s]', $this->_gt('None'))),
+        [0 => sprintf('[%s]', $this->_gt('None'))],
         $subjects
       );
-      $fields = array(
-        'name' => array('Name', 'isNoHTML', TRUE, 'input', 255),
-        'parent_id' => array('Parent id', 'isNum', TRUE, 'combo', $subjects, '', 0)
-      );
+      $fields = [
+        'name' => ['Name', 'isNoHTML', TRUE, 'input', 255],
+        'parent_id' => ['Parent id', 'isNum', TRUE, 'combo', $subjects, '', 0]
+      ];
       $data = [];
       if (isset($this->params['subject_id'])) {
         $subject = $this->generalSurveySubject;
@@ -812,10 +812,10 @@ class GeneralSurveyAdministration extends base_object {
           $data = $subject->getAlternateTranslation($this->params['subject_id']);
         }
       }
-      $hidden = array(
+      $hidden = [
         'cmd' => 'save_subject',
         'survey_id' => $this->params['survey_id']
-      );
+      ];
       if (!empty($data)) {
         $hidden['subject_id'] = $this->params['subject_id'];
       }
@@ -854,20 +854,20 @@ class GeneralSurveyAdministration extends base_object {
   */
   public function initializeQuestionDialog() {
     if (!is_object($this->_questionDialog)) {
-      $fields = array(
-        'title' => array('Title', 'isNoHTML', TRUE, 'input', 255),
-        'description' => array('Description', 'isSomeText', FALSE, 'richtext', 7),
-        'type' => array(
+      $fields = [
+        'title' => ['Title', 'isNoHTML', TRUE, 'input', 255],
+        'description' => ['Description', 'isSomeText', FALSE, 'richtext', 7],
+        'type' => [
           'Type',
           '(single|multiple)',
           TRUE,
           'radio',
-          array('single' => 'single', 'multiple' => 'multiple'),
+          ['single' => 'single', 'multiple' => 'multiple'],
           '',
           'single'
-        )
-      );
-      $data = array();
+        ]
+      ];
+      $data = [];
       if (isset($this->params['question_id'])) {
         $question = $this->generalSurveyQuestion;
         if ($question->load($this->params['question_id'])) {
@@ -878,11 +878,11 @@ class GeneralSurveyAdministration extends base_object {
           $data = $question->getAlternateTranslation($this->params['question_id']);
         }
       }
-      $hidden = array(
+      $hidden = [
         'cmd' => 'save_question',
         'survey_id' => $this->params['survey_id'],
         'questiongroup_id' => $this->params['questiongroup_id']
-      );
+      ];
       if (!empty($data)) {
         $hidden['question_id'] = $this->params['question_id'];
       }
@@ -921,10 +921,10 @@ class GeneralSurveyAdministration extends base_object {
   */
   public function initializeAnswerDialog() {
     if (!is_object($this->_answerDialog)) {
-      $fields = array(
-        'title' => array('Title', 'isNoHTML', TRUE, 'input', 255),
-        'description' => array('Description', 'isSomeText', FALSE, 'richtext', 7)
-      );
+      $fields = [
+        'title' => ['Title', 'isNoHTML', TRUE, 'input', 255],
+        'description' => ['Description', 'isSomeText', FALSE, 'richtext', 7]
+      ];
       $data = [];
       if (isset($this->params['answer_id'])) {
         $answer = $this->generalSurveyAnswer;
@@ -937,12 +937,12 @@ class GeneralSurveyAdministration extends base_object {
           );
         }
       }
-      $hidden = array(
+      $hidden = [
         'cmd' => 'save_answer',
         'survey_id' => $this->params['survey_id'],
         'questiongroup_id' => $this->params['questiongroup_id'],
         'question_id' => $this->params['question_id']
-      );
+      ];
       if (!empty($data)) {
         $hidden['answer_id'] = $this->params['answer_id'];
       }
@@ -980,11 +980,11 @@ class GeneralSurveyAdministration extends base_object {
       }
       if (!empty($data)) {
         $hidden = $this->_getLinkParams(
-          array(
+          [
             'cmd' => 'delete_survey',
             'survey_id' => $this->params['survey_id'],
             'confirm_delete' => 1
-          )
+          ]
         );
         $dialog = $this->_getMsgDialogObject(
           $hidden,
@@ -1018,12 +1018,12 @@ class GeneralSurveyAdministration extends base_object {
       }
       if (!empty($data)) {
         $hidden = $this->_getLinkParams(
-          array(
+          [
             'cmd' => 'delete_questiongroup',
             'survey_id' => $this->params['survey_id'],
             'questiongroup_id' => $this->params['questiongroup_id'],
             'confirm_delete' => 1
-          )
+          ]
         );
         $dialog = $this->_getMsgDialogObject(
           $hidden,
@@ -1057,13 +1057,13 @@ class GeneralSurveyAdministration extends base_object {
       }
       if (!empty($data)) {
         $hidden = $this->_getLinkParams(
-          array(
+          [
             'cmd' => 'delete_question',
             'survey_id' => $this->params['survey_id'],
             'questiongroup_id' => $this->params['questiongroup_id'],
             'question_id' => $this->params['question_id'],
             'confirm_delete' => 1
-          )
+          ]
         );
         $dialog = $this->_getMsgDialogObject(
           $hidden,
@@ -1097,14 +1097,14 @@ class GeneralSurveyAdministration extends base_object {
       }
       if (!empty($data)) {
         $hidden = $this->_getLinkParams(
-          array(
+          [
             'cmd' => 'delete_answer',
             'survey_id' => $this->params['survey_id'],
             'questiongroup_id' => $this->params['questiongroup_id'],
             'question_id' => $this->params['question_id'],
             'answer_id' => $this->params['answer_id'],
             'confirm_delete' => 1
-          )
+          ]
         );
         $dialog = $this->_getMsgDialogObject(
           $hidden,
@@ -1138,12 +1138,12 @@ class GeneralSurveyAdministration extends base_object {
       }
       if (!empty($data)) {
         $hidden = $this->_getLinkParams(
-          array(
+          [
             'cmd' => 'delete_subject',
             'survey_id' => $this->params['survey_id'],
             'subject_id' => $this->params['subject_id'],
             'confirm_delete' => 1
-          )
+          ]
         );
         $dialog = $this->_getMsgDialogObject(
           $hidden,
@@ -1304,23 +1304,23 @@ class GeneralSurveyAdministration extends base_object {
   public function deleteSurvey() {
     if (isset($this->params['survey_id']) && isset($this->params['confirm_delete'])) {
       $questionGroupList = $this->generalSurveyQuestionGroupList;
-      $questionGroupList->load(array('survey_id' => $this->params['survey_id']));
+      $questionGroupList->load(['survey_id' => $this->params['survey_id']]);
       if (count(iterator_to_array($questionGroupList)) > 0) {
-        $questionGroupIds = array();
+        $questionGroupIds = [];
         foreach ($questionGroupList as $questionGroupId => $questionGroupData) {
           $questionGroupIds[] = $questionGroupId;
           $questionGroupList->delete($questionGroupId);
         }
         $questionList = $this->generalSurveyQuestionList;
-        $questionList->load(array('questiongroup_id' => $questionGroupIds));
+        $questionList->load(['questiongroup_id' => $questionGroupIds]);
         if (count(iterator_to_array($questionList)) > 0) {
-          $questionIds = array();
+          $questionIds = [];
           foreach ($questionList as $questionId => $questionData) {
             $questionIds[] = $questionId;
             $questionList->delete($questionId);
           }
           $answerList = $this->generalSurveyAnswerList;
-          $answerList->load(array('question_id' => $questionIds));
+          $answerList->load(['question_id' => $questionIds]);
           if (count(iterator_to_array($answerList)) > 0) {
             foreach ($answerList as $answerId => $answerData) {
               $answerList->delete($answerId);
@@ -1329,7 +1329,7 @@ class GeneralSurveyAdministration extends base_object {
         }
       }
       $subjectList = $this->generalSurveySubjectList;
-      $subjectList->load(array('survey_id' => $this->params['survey_id']));
+      $subjectList->load(['survey_id' => $this->params['survey_id']]);
       if (count(iterator_to_array($subjectList)) > 0) {
         foreach ($subjectList as $subjectId => $subjectData) {
           $subjectList->delete($subjectId);
@@ -1351,15 +1351,15 @@ class GeneralSurveyAdministration extends base_object {
   public function deleteQuestionGroup() {
     if (isset($this->params['questiongroup_id']) && isset($this->params['confirm_delete'])) {
       $questionList = $this->generalSurveyQuestionList;
-      $questionList->load(array('questiongroup_id' => $this->params['questiongroup_id']));
+      $questionList->load(['questiongroup_id' => $this->params['questiongroup_id']]);
       if (count(iterator_to_array($questionList)) > 0) {
-        $questionIds = array();
+        $questionIds = [];
         foreach ($questionList as $questionId => $questionData) {
           $questionIds[] = $questionId;
           $questionList->delete($questionId);
         }
         $answerList = $this->generalSurveyAnswerList;
-        $answerList->load(array('question_id' => $questionIds));
+        $answerList->load(['question_id' => $questionIds]);
         if (count(iterator_to_array($answerList)) > 0) {
           foreach ($answerList as $answerId => $answerData) {
             $answerList->delete($answerId);
@@ -1382,7 +1382,7 @@ class GeneralSurveyAdministration extends base_object {
   public function deleteQuestion() {
     if (isset($this->params['question_id']) && isset($this->params['confirm_delete'])) {
       $answerList = $this->generalSurveyAnswerList;
-      $answerList->load(array('question_id' => $this->params['question_id']));
+      $answerList->load(['question_id' => $this->params['question_id']]);
       if (count(iterator_to_array($answerList)) > 0) {
         foreach ($answerList as $answerId => $answerData) {
           $answerList->delete($answerId);
@@ -1420,7 +1420,7 @@ class GeneralSurveyAdministration extends base_object {
     if (isset($this->params['subject_id']) && isset($this->params['confirm_delete'])) {
       $list = $this->generalSurveySubjectList;
       $countChildren = 0;
-      if ($list->load(array('parent_id' => $this->params['subject_id']))) {
+      if ($list->load(['parent_id' => $this->params['subject_id']])) {
         $countChildren = count(iterator_to_array($list));
       }
       if ($countChildren > 0) {
@@ -1683,7 +1683,7 @@ class GeneralSurveyAdministration extends base_object {
   public function getMenuBarXml() {
     $toolbar = new base_btnbuilder();
     $cmd = isset($this->params['cmd']) ? $this->params['cmd'] : '';
-    $modeLinkParams = array();
+    $modeLinkParams = [];
     if (isset($this->params['survey_id'])) {
       $modeLinkParams['survey_id'] = $this->params['survey_id'];
     }
@@ -1707,7 +1707,7 @@ class GeneralSurveyAdministration extends base_object {
       $toolbar->addSeparator();
       $toolbar->addButton(
         'Add Survey',
-        $this->_getLinkWithParams(array('cmd' => 'add_survey')),
+        $this->_getLinkWithParams(['cmd' => 'add_survey']),
         $this->images['actions-folder-add'],
         'Add a new survey',
         $cmd == 'add_survey'
@@ -1717,7 +1717,7 @@ class GeneralSurveyAdministration extends base_object {
         $toolbar->addButton(
           'Delete survey',
           $this->_getLinkWithParams(
-            array('cmd' => 'delete_survey', 'survey_id' => $this->params['survey_id'])
+            ['cmd' => 'delete_survey', 'survey_id' => $this->params['survey_id']]
           ),
           $this->images['actions-folder-delete'],
           'Delete current survey',
@@ -1727,10 +1727,10 @@ class GeneralSurveyAdministration extends base_object {
         $toolbar->addButton(
           'Add group',
           $this->_getLinkWithParams(
-            array(
+            [
               'cmd' => 'add_questiongroup',
               'survey_id' => $this->params['survey_id']
-            )
+            ]
           ),
           $this->images['actions-table-add'],
           'Add a new question group',
@@ -1740,11 +1740,11 @@ class GeneralSurveyAdministration extends base_object {
           $toolbar->addButton(
             'Delete group',
             $this->_getLinkWithParams(
-              array(
+              [
                 'cmd' => 'delete_questiongroup',
                 'survey_id' => $this->params['survey_id'],
                 'questiongroup_id' => $this->params['questiongroup_id']
-              )
+              ]
             ),
             $this->images['actions-table-delete'],
             'Delete current question group',
@@ -1754,11 +1754,11 @@ class GeneralSurveyAdministration extends base_object {
           $toolbar->addButton(
             'Add question',
             $this->_getLinkWithParams(
-              array(
+              [
                 'cmd' => 'add_question',
                 'survey_id' => $this->params['survey_id'],
                 'questiongroup_id' => $this->params['questiongroup_id']
-              )
+              ]
             ),
             $this->images['actions-table-row-add'],
             'Add a question',
@@ -1768,12 +1768,12 @@ class GeneralSurveyAdministration extends base_object {
             $toolbar->addButton(
               'Delete question',
               $this->_getLinkWithParams(
-                array(
+                [
                   'cmd' => 'delete_question',
                   'survey_id' => $this->params['survey_id'],
                   'questiongroup_id' => $this->params['questiongroup_id'],
                   'question_id' => $this->params['question_id']
-                )
+                ]
               ),
               $this->images['actions-table-row-delete'],
               'Delete current question',
@@ -1784,12 +1784,12 @@ class GeneralSurveyAdministration extends base_object {
               $toolbar->addButton(
                 'Add answer',
                 $this->_getLinkWithParams(
-                  array(
+                  [
                     'cmd' => 'add_answer',
                     'survey_id' => $this->params['survey_id'],
                     'questiongroup_id' => $this->params['questiongroup_id'],
                     'question_id' => $this->params['question_id']
-                  )
+                  ]
                 ),
                 $this->images['actions-generic-add'],
                 'Add a new answer',
@@ -1799,13 +1799,13 @@ class GeneralSurveyAdministration extends base_object {
                 $toolbar->addButton(
                   'Delete answer',
                   $this->_getLinkWithParams(
-                    array(
+                    [
                       'cmd' => 'delete_answer',
                       'survey_id' => $this->params['survey_id'],
                       'questiongroup_id' => $this->params['questiongroup_id'],
                       'question_id' => $this->params['question_id'],
                       'answer_id' => $this->params['answer_id']
-                    )
+                    ]
                   ),
                   $this->images['actions-generic-delete'],
                   'Delete current answer',
@@ -1820,10 +1820,10 @@ class GeneralSurveyAdministration extends base_object {
           $toolbar->addButton(
             'Add subject',
             $this->_getLinkWithParams(
-              array(
+              [
                 'cmd' => 'add_subject',
                 'survey_id' => $this->params['survey_id']
-              )
+              ]
             ),
             $this->images['actions-table-column-add'],
             'Add a new subject',
@@ -1833,11 +1833,11 @@ class GeneralSurveyAdministration extends base_object {
             $toolbar->addButton(
               'Delete subject',
               $this->_getLinkWithParams(
-                array(
+                [
                   'cmd' => 'delete_subject',
                   'survey_id' => $this->params['survey_id'],
                   'subject_id' => $this->params['subject_id']
-                )
+                ]
               ),
               $this->images['actions-table-column-delete'],
               'Delete current subject',
@@ -1856,11 +1856,11 @@ class GeneralSurveyAdministration extends base_object {
         $toolbar->addButton(
           'By subject',
           $this->getLink(
-            array(
+            [
               'mode' => 'stat',
               'order_by' => 'subject_name',
               'survey_id' => $this->params['survey_id']
-            )
+            ]
           ),
           $this->images['actions-go-up'],
           'Order alphabetically by subject, ascending',
@@ -1869,11 +1869,11 @@ class GeneralSurveyAdministration extends base_object {
         $toolbar->addButton(
           'By result count',
           $this->getLink(
-            array(
+            [
               'mode' => 'stat',
               'order_by' => 'result_count',
               'survey_id' => $this->params['survey_id']
-            )
+            ]
           ),
           $this->images['actions-go-down'],
           'Order by number of results, descending',
@@ -1883,12 +1883,12 @@ class GeneralSurveyAdministration extends base_object {
         $toolbar->addButton(
           'Export CSV',
           $this->getLink(
-            array(
+            [
               'mode' => 'stat',
               'order_by' => $orderBy,
               'cmd' => 'export_stat',
               'survey_id' => $this->params['survey_id']
-            )
+            ]
           ),
           $this->images['actions-download'],
           'Export statistic for current survey as CSV',
@@ -1908,8 +1908,8 @@ class GeneralSurveyAdministration extends base_object {
   * @return string XML
   */
   public function getSubjectPagingXml($subjectCount) {
-    $params = array();
-    $fields = array(
+    $params = [];
+    $fields = [
       'cmd',
       'survey_id',
       'subject_id',
@@ -1917,7 +1917,7 @@ class GeneralSurveyAdministration extends base_object {
       'questiongroup_id',
       'question_id',
       'answer_id'
-    );
+    ];
     foreach ($fields as $field) {
       if (isset($this->params[$field])) {
         $params[$field] = $this->params[$field];
@@ -1941,21 +1941,21 @@ class GeneralSurveyAdministration extends base_object {
   * @return string XML
   */
   public function getSubjectLimitButtonsXml() {
-    $params = array();
-    $fields = array(
+    $params = [];
+    $fields = [
       'cmd',
       'survey_id',
       'subject_id',
       'questiongroup_id',
       'question_id',
       'answer_id'
-    );
+    ];
     foreach ($fields as $field) {
       if (isset($this->params[$field])) {
         $params[$field] = $this->params[$field];
       }
     }
-    $pageValues = array();
+    $pageValues = [];
     foreach ($this->_availableLimits as $limit) {
       $pageValues[$limit] = $limit;
     }

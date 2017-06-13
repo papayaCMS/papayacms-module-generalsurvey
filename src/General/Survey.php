@@ -126,17 +126,19 @@ class GeneralSurvey extends PapayaDatabaseObjectRecord {
     $id = $this->databaseInsertRecord(
       $this->databaseGetTableName('general_survey'),
       'survey_id',
-      ['deleted' => 0]
+      [
+        'survey_use_subjects' => $this['use_subjects'],
+        'survey_use_answers' => $this['use_answers'],
+        'deleted' => 0
+      ]
     );
     if (FALSE !== $id) {
       $data = array(
         'survey_id' => $id,
-        'survey_use_subjects' => $this['use_subjects'],
-        'survey_use_answers' => $this['use_answers'],
         'survey_language' => $this->language(),
         'survey_title' => $this['title'],
         'survey_description' => $this['description']
-      );
+      ); var_dump($data);
       $success = $this->databaseInsertRecord(
         $this->databaseGetTableName('general_survey_trans'),
         NULL,
