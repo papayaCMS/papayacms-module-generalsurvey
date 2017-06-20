@@ -57,7 +57,7 @@ class GeneralSurveyQuestionList extends PapayaDatabaseObjectList {
     if (!empty($filter) && is_array($filter)) {
       $mapping = array_flip($this->_fieldMapping);
       foreach ($filter as $field => $value) {
-        if (in_array($field, array('id', 'question_id', 'type'))) {
+        if (in_array($field, array('id', 'questiongroup_id', 'type'))) {
           $conditions[] = $this->databaseGetSqlCondition('q.'.$mapping[$field], $value);
         }
       }
