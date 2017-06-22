@@ -372,7 +372,7 @@ class GeneralSurveyAdministration extends base_object {
                 'questiongroup_id' => $id
               ]
             ),
-            strip_tags($record['title']),
+            papaya_strings::escapeHTMLChars(strip_tags($record['title'])),
             $selected
           );
           if ($record['order'] > 1) {
@@ -512,7 +512,7 @@ class GeneralSurveyAdministration extends base_object {
               'question_id' => $id
             ]
           ),
-          strip_tags($record['title']),
+          papaya_strings::escapeHTMLChars(strip_tags($record['title'])),
           $selected
         );
         if ($record['order'] > 1) {
