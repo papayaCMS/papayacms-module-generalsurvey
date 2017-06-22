@@ -307,7 +307,7 @@ class GeneralSurveyContent extends base_object {
       $result .= '<questiongroup>'.LF;
       $result .= sprintf(
         '<title>%s</title>'.LF,
-        papaya_strings::escapeHTMLChars($questionGroup['title'])
+        $this->_owner->getXHTMLString($questionGroup['title'])
       );
       $result .= sprintf(
         '<text>%s</text>'.LF,
@@ -337,7 +337,7 @@ class GeneralSurveyContent extends base_object {
             $result .= '</question>'.LF;
             $fieldName = sprintf(
               '%s%s',
-              papaya_strings::escapeHTMLChars($questionData['title']),
+              $this->_owner->getXHTMLString($questionData['title']),
               $questionData['type'] == 'single' ? '' : '[]'
             );
             $fields['question_'.$questionId] = array(

@@ -372,7 +372,7 @@ class GeneralSurveyAdministration extends base_object {
                 'questiongroup_id' => $id
               ]
             ),
-            papaya_strings::escapeHTMLChars($record['title']),
+            strip_tags($record['title']),
             $selected
           );
           if ($record['order'] > 1) {
@@ -512,7 +512,7 @@ class GeneralSurveyAdministration extends base_object {
               'question_id' => $id
             ]
           ),
-          papaya_strings::escapeHTMLChars($record['title']),
+          strip_tags($record['title']),
           $selected
         );
         if ($record['order'] > 1) {
@@ -725,7 +725,7 @@ class GeneralSurveyAdministration extends base_object {
   public function initializeQuestionGroupDialog() {
     if (!is_object($this->_questionGroupDialog)) {
       $fields = [
-        'title' => ['Title', 'isNoHTML', TRUE, 'input', 255],
+        'title' => ['Title', 'isSomeText', TRUE, 'simplerichtext', 3],
         'description' => ['Description', 'isSomeText', FALSE, 'richtext', 7]
       ];
       $data = [];
@@ -855,7 +855,7 @@ class GeneralSurveyAdministration extends base_object {
   public function initializeQuestionDialog() {
     if (!is_object($this->_questionDialog)) {
       $fields = [
-        'title' => ['Title', 'isNoHTML', TRUE, 'input', 255],
+        'title' => ['Title', 'isSomeText', TRUE, 'simplerichtext', 3],
         'description' => ['Description', 'isSomeText', FALSE, 'richtext', 7],
         'type' => [
           'Type',

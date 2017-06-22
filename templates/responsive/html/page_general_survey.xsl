@@ -43,7 +43,7 @@
     <xsl:param name="content" />
     <xsl:param name="questionGroup" />
     <xsl:param name="dialog" select="$questionGroup/dialog" />
-    <h2><xsl:value-of select="$questionGroup/title/text()" /></h2>
+    <h2><xsl:copy-of select="$questionGroup/title/*|$questionGroup/title/text()" /></h2>
     <xsl:copy-of select="$questionGroup/text/*|$questionGroup/text/text()" />
     <form action="{$dialog/@action}" method="{$dialog/@method}">
       <xsl:copy-of select="$dialog/input[@type = 'hidden']" />
