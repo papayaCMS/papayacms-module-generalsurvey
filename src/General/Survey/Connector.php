@@ -201,7 +201,7 @@ class GeneralSurveyConnector extends base_connector {
           $className = preg_replace('(^g)', 'G', $name);
           $this->_instances[$name] = new $className;
         }
-        $this->_instances[$name]->language($this->papaya()->administrationLanguage->id);
+        $this->_instances[$name]->language($this->_language);
         return $this->_instances[$name];
       } else {
         throw new RuntimeException(
