@@ -145,7 +145,7 @@ class GeneralSurveyContentPage extends base_content {
   *
   * @return string XML
   */
-  public function getParsedData() {
+  public function getParsedData($parseParams = NULL) {
     $this->setDefaultData();
     $this->initializeParams();
     $surfer = $this->papaya()->surfer;
