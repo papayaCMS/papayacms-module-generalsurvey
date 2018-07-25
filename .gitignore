@@ -1,10 +1,5 @@
-# Composer
-/vendor
-composer.phar
-composer.lock
-
 # PHPStorm
-/.idea
+/.idea/
 
 # Eclipse
 /.settings
@@ -12,14 +7,29 @@ composer.lock
 /.buildpath
 
 # Netbeans
-/nbproject
+/nbproject/
 
 # Build Artifacts
-/build
+/build/
+
+# Composer
+/vendor/
+composer.phar
+
+# Phive
+/tools/
 
 # papaya CMS
 /papaya.php
-/htdocs
-/papaya-data
+/papaya.sqlite
+/htdocs/conf.inc.php
+/htdocs/revision.inc.php
+/htdocs/papaya/
+/papaya-data/
 
+
+
+# Default template and theme
+#/templates/responsive/
+#/htdocs/papaya-themes/dynamic/
 

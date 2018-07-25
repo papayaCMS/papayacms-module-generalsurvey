@@ -1,19 +1,19 @@
 {
   "name": "papaya/module-generalsurvey",
+  "license": "GPL-2.0",
   "minimum-stability": "dev",
   "extra" : {
     "document-root" : "htdocs/"
   },
   "require": {
-    "papaya/cms-core": "*",
-    "papaya/cms-administration": "*",
-    "papaya/module-default": "*",
-    "papaya/module-default-cronjobs": "*",
-    "papaya/module-standard": "*",
-    "papaya/module-community": "*"
+    "papaya/cms-core": "6.*",
+    "papaya/module-default": "1.*",
+    "papaya/module-default-cronjobs": "1.*",
+    "papaya/module-standard": "1.*",
+    "papaya/module-community": "1.*"
   },
   "require-dev": {
-    "papaya/cms-administration": "*",
-    "papaya/theme-dynamic": "*"
+    "papaya/cms-administration": "6.*",
+    "papaya/theme-dynamic": "1.*"
   }
 }
