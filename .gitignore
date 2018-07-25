@@ -26,10 +26,11 @@ composer.phar
 /htdocs/revision.inc.php
 /htdocs/papaya/
 /papaya-data/
+/php-server.log
 
 
 
 # Default template and theme
-#/templates/responsive/
-#/htdocs/papaya-themes/dynamic/
+/templates/responsive/
+/htdocs/papaya-themes/dynamic/
 
