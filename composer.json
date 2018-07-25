@@ -10,7 +10,7 @@
     "papaya/module-default": "1.*",
     "papaya/module-default-cronjobs": "1.*",
     "papaya/module-standard": "1.*",
-    "papaya/module-community": "1.*"
+    "papaya/module-community": "2.*"
   },
   "require-dev": {
     "papaya/cms-administration": "6.*",
