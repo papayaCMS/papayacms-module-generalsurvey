@@ -2097,7 +2097,9 @@ class GeneralSurveyAdministration extends base_object {
         $className = preg_replace('(^g)', 'G', $name);
         $this->_instances[$name] = new $className;
       }
-      $this->_instances[$name]->language($this->papaya()->administrationLanguage->id);
+      if (method_exists($this->_instances[$name], 'language')) {
+        $this->_instances[$name]->language($this->papaya()->administrationLanguage->id);
+      }
       return $this->_instances[$name];
     } else {
       throw new InvalidArgumentException('Class name "'.$name.'" not allowed.');
